@@ -4,11 +4,18 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 
 @Entity('customers')
-@ObjectType() // GraphQL object type
+@ObjectType()
+@Index('IDX_NAME', ['name'])
+@Index('IDX_MOBILE', ['mobile'])
+@Index('IDX_ALT_MOBILE', ['alt_mobile'])
+@Index('IDX_EMAIL', ['email'])
+@Index('IDX_PINCODE', ['pincode'])
+@Index('IDX_DISTRICT', ['district'])
 export class Customer {
   @PrimaryGeneratedColumn()
   @Field()

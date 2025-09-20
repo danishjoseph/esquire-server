@@ -17,8 +17,16 @@ export class CustomerResolver {
   }
 
   @Query(() => [Customer], { name: 'customers' })
-  findAll() {
-    return this.customersService.findAll();
+  findAll(
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
+    @Args('offset', { type: () => Int, nullable: true }) offset?: number,
+    @Args('search', { type: () => String, nullable: true }) search?: string,
+  ) {
+    return this.customersService.findAll(
+      limit ?? 10,
+      offset ?? 0,
+      search ?? undefined,
+    );
   }
 
   @Query(() => Customer, { name: 'customer' })

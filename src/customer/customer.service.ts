@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { CreateCustomerInput } from './dto/create-customer.input';
 import { UpdateCustomerInput } from './dto/update-customer.input';
 import { CustomerRepository } from './customer.respository';
-import { DeleteResult } from 'typeorm';
+import { DeleteResult, FindManyOptions, ILike, Like } from 'typeorm';
+import { Customer } from './entities/customer.entity';
 
 @Injectable()
 export class CustomerService {
@@ -12,8 +13,25 @@ export class CustomerService {
     return this.customerRepository.save(createCustomerInput);
   }
 
-  findAll() {
-    return this.customerRepository.find({ order: { created_at: 'desc' } });
+  findAll(limit: number, offset: number, search?: string) {
+    const queryOptions: FindManyOptions<Customer> = {
+      skip: offset,
+      take: limit,
+      order: { created_at: 'desc' },
+      where: [],
+    };
+
+    if (search) {
+      queryOptions.where = [
+        { name: ILike(`%${search}%`) },
+        { mobile: Like(`%${search}%`) },
+        { alt_mobile: Like(`%${search}%`) },
+        { email: Like(`%${search}%`) },
+        { pincode: Like(`%${search}%`) },
+        { district: Like(`%${search}%`) },
+      ];
+    }
+    return this.customerRepository.find(queryOptions);
   }
 
   findOne(id: number) {
