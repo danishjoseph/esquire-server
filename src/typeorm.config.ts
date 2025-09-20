@@ -14,7 +14,7 @@ const dataSourceOptions: DataSourceOptions = {
   database: configService.getOrThrow<string>('DB_NAME'),
   entities: [__dirname + '/../**/*.entity.{js,ts}'],
   migrations: [__dirname + '/../migrations/*.{js,ts}'],
-  migrationsRun: false,
+  migrationsRun: true,
   synchronize: false,
   logging: process.env.ENV !== 'production',
 };
