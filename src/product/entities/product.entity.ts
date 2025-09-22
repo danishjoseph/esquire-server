@@ -62,6 +62,6 @@ export class Product {
     nullable: true,
   })
   @JoinColumn({ name: 'customer_id' })
-  @Field(() => Customer)
+  @Field(() => Customer, { nullable: true })
   customer: Customer;
 }
