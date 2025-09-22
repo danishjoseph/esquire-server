@@ -5,6 +5,7 @@ import datasource from './typeorm.config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'; // Import statements for driver
 import { CustomerModule } from './customer/customer.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CustomerModule } from './customer/customer.module';
       playground: true,
     }),
     CustomerModule,
+    ProductModule,
   ],
   controllers: [],
   providers: [],
