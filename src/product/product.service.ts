@@ -10,6 +10,7 @@ import {
   Like,
 } from 'typeorm';
 import { CustomerService } from '../customer/customer.service';
+import { GrowthMetrics, ReportingService } from '../reports/reporting.service';
 
 @Injectable()
 export class ProductService {
@@ -17,6 +18,7 @@ export class ProductService {
   constructor(
     private readonly productRepository: ProductRepository,
     private readonly customerService: CustomerService, // Instead of customerRepository
+    private readonly reportingService: ReportingService,
   ) {}
   async create(createProductInput: CreateProductInput) {
     const { customerId, ...productData } = createProductInput;
@@ -87,5 +89,19 @@ export class ProductService {
   async remove(id: number) {
     const deleteResult: DeleteResult = await this.productRepository.delete(id);
     return deleteResult && deleteResult.affected && deleteResult.affected > 0;
+  }
+
+  async findMetrics(): Promise<GrowthMetrics> {
+    const totalProducts = await this.productRepository.getTotalProducts();
+    const { monthlyGrowth, currentMonthCount } =
+      await this.reportingService.calculateGrowthForEntity(
+        this.productRepository,
+      );
+
+    return {
+      total: totalProducts,
+      currentMonthCount,
+      monthlyGrowth,
+    };
   }
 }

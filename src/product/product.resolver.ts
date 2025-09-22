@@ -3,6 +3,8 @@ import { ProductService } from './product.service';
 import { Product } from './entities/product.entity';
 import { CreateProductInput } from './dto/create-product.input';
 import { UpdateProductInput } from './dto/update-product.input';
+import { ProductMetrics } from './dto/product-metrics';
+import { GrowthMetrics } from 'src/reports/reporting.service';
 
 @Resolver(() => Product)
 export class ProductResolver {
@@ -46,5 +48,10 @@ export class ProductResolver {
   @Mutation(() => Boolean)
   removeProduct(@Args('id', { type: () => Int }) id: number) {
     return this.productService.remove(id);
+  }
+
+  @Query(() => ProductMetrics, { name: 'productMetrics' })
+  productStatistics(): Promise<GrowthMetrics> {
+    return this.productService.findMetrics();
   }
 }

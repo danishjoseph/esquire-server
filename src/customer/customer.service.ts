@@ -4,10 +4,14 @@ import { UpdateCustomerInput } from './dto/update-customer.input';
 import { CustomerRepository } from './customer.respository';
 import { DeleteResult, FindManyOptions, ILike, Like } from 'typeorm';
 import { Customer } from './entities/customer.entity';
+import { GrowthMetrics, ReportingService } from 'src/reports/reporting.service';
 
 @Injectable()
 export class CustomerService {
-  constructor(private readonly customerRepository: CustomerRepository) {}
+  constructor(
+    private readonly customerRepository: CustomerRepository,
+    private readonly reportingService: ReportingService,
+  ) {}
 
   create(createCustomerInput: CreateCustomerInput) {
     return this.customerRepository.save(createCustomerInput);
@@ -58,69 +62,17 @@ export class CustomerService {
     return deleteResult && deleteResult.affected && deleteResult.affected > 0;
   }
 
-  async findMetrics() {
-    const totalCustomers = await this.customerRepository.getTotalCustomers();
-    const { monthlyGrowth, currentMonthCustomers } =
-      await this.findCustomerGrowth();
+  async findMetrics(): Promise<GrowthMetrics> {
+    const total = await this.customerRepository.getTotalCustomers();
+    const { monthlyGrowth, currentMonthCount } =
+      await this.reportingService.calculateGrowthForEntity(
+        this.customerRepository,
+      );
 
     return {
-      totalCustomers,
-      currentMonthCustomers,
+      total,
+      currentMonthCount,
       monthlyGrowth,
     };
-  }
-
-  private async findCustomerGrowth() {
-    const now = new Date();
-
-    // Determine current month and year
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    // Determine last month and year
-    let lastMonth: number;
-    let lastMonthYear: number;
-
-    if (currentMonth === 0) {
-      // If the current month is January
-      lastMonth = 11; // December
-      lastMonthYear = currentYear - 1; // Previous year
-    } else {
-      lastMonth = currentMonth - 1;
-      lastMonthYear = currentYear;
-    }
-
-    // Calculate date boundaries using extracted month and year
-    const startOfCurrentMonth = new Date(currentYear, currentMonth, 1);
-    const endOfCurrentMonth = new Date(currentYear, currentMonth + 1, 1);
-
-    const startOfLastMonth = new Date(lastMonthYear, lastMonth, 1);
-    const endOfLastMonth = new Date(currentYear, currentMonth, 1);
-
-    // Retrieve customer counts
-    const currentMonthCustomers =
-      await this.customerRepository.getCustomersCountForPeriod(
-        startOfCurrentMonth,
-        endOfCurrentMonth,
-      );
-
-    const lastMonthCustomers =
-      await this.customerRepository.getCustomersCountForPeriod(
-        startOfLastMonth,
-        endOfLastMonth,
-      );
-
-    // Calculate growth percentage
-    let growth: number;
-
-    if (lastMonthCustomers === 0) {
-      growth = currentMonthCustomers > 0 ? 100 : 0;
-    } else {
-      growth =
-        ((currentMonthCustomers - lastMonthCustomers) / lastMonthCustomers) *
-        100;
-    }
-
-    return { monthlyGrowth: growth, currentMonthCustomers };
   }
 }

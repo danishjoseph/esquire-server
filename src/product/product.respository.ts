@@ -12,7 +12,7 @@ export class ProductRepository extends Repository<Product> {
     return this.count();
   }
 
-  async getProductsCountForPeriod(start: Date, end: Date): Promise<number> {
+  async getCountForPeriod(start: Date, end: Date): Promise<number> {
     return this.count({
       where: {
         created_at: Between(start, end),

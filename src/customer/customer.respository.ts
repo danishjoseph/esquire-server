@@ -12,7 +12,7 @@ export class CustomerRepository extends Repository<Customer> {
     return this.count();
   }
 
-  async getCustomersCountForPeriod(start: Date, end: Date): Promise<number> {
+  async getCountForPeriod(start: Date, end: Date): Promise<number> {
     return this.count({
       where: {
         created_at: Between(start, end),

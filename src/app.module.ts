@@ -6,6 +6,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'; // Import statements for driver
 import { CustomerModule } from './customer/customer.module';
 import { ProductModule } from './product/product.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ProductModule } from './product/product.module';
     }),
     CustomerModule,
     ProductModule,
+    ReportsModule,
   ],
   controllers: [],
   providers: [],

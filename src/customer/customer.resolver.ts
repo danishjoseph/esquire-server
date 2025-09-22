@@ -4,6 +4,7 @@ import { Customer } from './entities/customer.entity';
 import { CreateCustomerInput } from './dto/create-customer.input';
 import { UpdateCustomerInput } from './dto/update-customer.input';
 import { CustomerMetrics } from './dto/customer-metrics';
+import { GrowthMetrics } from 'src/reports/reporting.service';
 
 @Resolver(() => Customer)
 export class CustomerResolver {
@@ -35,7 +36,7 @@ export class CustomerResolver {
   }
 
   @Query(() => CustomerMetrics, { name: 'customerMetrics' })
-  customerStatistics(): Promise<CustomerMetrics> {
+  customerStatistics(): Promise<GrowthMetrics> {
     return this.customersService.findMetrics();
   }
 
