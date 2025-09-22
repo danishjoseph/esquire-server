@@ -5,8 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  OneToMany,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
+import { Product } from '../../product/entities/product.entity';
 
 @Entity('customers')
 @ObjectType()
@@ -68,4 +70,8 @@ export class Customer {
   @UpdateDateColumn()
   @Field()
   updated_at: Date;
+
+  @OneToMany(() => Product, (product) => product.customer, { cascade: true })
+  @Field(() => [Product])
+  products: Product[];
 }
