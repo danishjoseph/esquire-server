@@ -4,12 +4,14 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { registerEnumType } from '@nestjs/graphql';
 import { ProductCategory } from '../enums/product.category.enum';
+import { Purchase } from './purchase.entity';
 
 registerEnumType(ProductCategory, {
   name: 'ProductCategory',
@@ -54,4 +56,8 @@ export class Product {
   @UpdateDateColumn()
   @Field()
   updated_at: Date;
+
+  @OneToMany(() => Purchase, (purchase) => purchase.product, { cascade: true })
+  @Field(() => [Purchase])
+  purchases: Purchase[];
 }
