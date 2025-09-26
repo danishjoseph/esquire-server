@@ -8,5 +8,4 @@ export class CreateProductInput {
   @Field() brand: string;
   @Field() model_name: string;
   @Field() serial_number: string;
-  @Field({ nullable: true }) customerId?: number;
 }

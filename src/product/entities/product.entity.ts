@@ -4,15 +4,12 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  JoinColumn,
-  ManyToOne,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { registerEnumType } from '@nestjs/graphql';
 import { ProductCategory } from '../enums/product.category.enum';
-import { Customer } from '../../customer/entities/customer.entity';
 
 registerEnumType(ProductCategory, {
   name: 'ProductCategory',
@@ -57,11 +54,4 @@ export class Product {
   @UpdateDateColumn()
   @Field()
   updated_at: Date;
-
-  @ManyToOne(() => Customer, (customer) => customer.products, {
-    nullable: true,
-  })
-  @JoinColumn({ name: 'customer_id' })
-  @Field(() => Customer, { nullable: true })
-  customer: Customer;
 }

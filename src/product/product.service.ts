@@ -9,7 +9,6 @@ import {
   FindManyOptions,
   Like,
 } from 'typeorm';
-import { CustomerService } from '../customer/customer.service';
 import { GrowthMetrics, ReportingService } from '../reports/reporting.service';
 
 @Injectable()
@@ -17,22 +16,10 @@ export class ProductService {
   private readonly logger = new Logger(ProductService.name);
   constructor(
     private readonly productRepository: ProductRepository,
-    private readonly customerService: CustomerService, // Instead of customerRepository
     private readonly reportingService: ReportingService,
   ) {}
   async create(createProductInput: CreateProductInput) {
-    const { customerId, ...productData } = createProductInput;
-    const product = this.productRepository.create(productData);
-    if (customerId) {
-      const customer = await this.customerService.findOne(customerId);
-      if (!customer) {
-        throw new NotFoundException(
-          `Customer with ID ${customerId} not found.`,
-        );
-      }
-      product.customer = customer;
-    }
-    return this.productRepository.save(product);
+    return this.productRepository.save(createProductInput);
   }
 
   findAll(limit: number, offset: number, search?: string) {
@@ -40,8 +27,6 @@ export class ProductService {
       skip: offset,
       take: limit,
       order: { created_at: 'desc' },
-      where: [],
-      relations: ['customer'], // Include the related 'customer'
     };
 
     if (search) {
@@ -68,21 +53,11 @@ export class ProductService {
   }
 
   async update(id: number, updateProductInput: UpdateProductInput) {
-    const { customerId, ...productData } = updateProductInput;
     const existingProduct = await this.productRepository.findOneBy({ id });
     if (!existingProduct) {
       throw new NotFoundException(`Product with ID ${id} not found.`);
     }
-    this.productRepository.merge(existingProduct, productData);
-    if (customerId) {
-      const customer = await this.customerService.findOne(customerId);
-      if (!customer) {
-        throw new NotFoundException(
-          `Customer with ID ${customerId} not found.`,
-        );
-      }
-      existingProduct.customer = customer;
-    }
+    this.productRepository.merge(existingProduct, updateProductInput);
     return this.productRepository.save(existingProduct);
   }
 
