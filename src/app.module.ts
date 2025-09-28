@@ -7,6 +7,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'; // Import sta
 import { CustomerModule } from './customer/customer.module';
 import { ProductModule } from './product/product.module';
 import { ReportsModule } from './reports/reports.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ReportsModule } from './reports/reports.module';
     CustomerModule,
     ProductModule,
     ReportsModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],
