@@ -1,0 +1,9 @@
+export enum ServiceSectionName {
+  LAP_CARE = 'LAP_CARE',
+  CHIP_LEVEL = 'CHIP_LEVEL',
+  DESKTOP_CARE = 'DESKTOP_CARE',
+  IPG = 'IPG',
+  VENDOR_ASP = 'VENDOR_ASP',
+  OUTSOURCE = 'OUTSOURCE',
+  HOLD = 'HOLD',
+}

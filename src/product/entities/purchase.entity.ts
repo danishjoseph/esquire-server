@@ -6,6 +6,7 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
@@ -14,6 +15,7 @@ import { Product } from './product.entity';
 import { Customer } from '../../customer/entities/customer.entity';
 import { PurchaseStatus } from '../enums/purchase-status.enum';
 import { WarrantyStatus } from '../enums/warranty-status.enum';
+import { Service } from '../../service/entities/service.entity';
 
 registerEnumType(PurchaseStatus, {
   name: 'PurchaseStatus',
@@ -31,6 +33,9 @@ export class Purchase {
   @PrimaryGeneratedColumn()
   @Field()
   id: number;
+
+  @OneToMany(() => Service, (service) => service.purchase)
+  services: Service[];
 
   @Column({
     type: 'enum',

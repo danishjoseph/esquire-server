@@ -1,20 +1,31 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateCustomerInput } from './dto/create-customer.input';
 import { UpdateCustomerInput } from './dto/update-customer.input';
 import { CustomerRepository } from './customer.respository';
-import { DeleteResult, FindManyOptions, ILike, Like } from 'typeorm';
+import {
+  DeleteResult,
+  EntityNotFoundError,
+  FindManyOptions,
+  ILike,
+  Like,
+  QueryRunner,
+} from 'typeorm';
 import { Customer } from './entities/customer.entity';
 import { GrowthMetrics, ReportingService } from 'src/reports/reporting.service';
 
 @Injectable()
 export class CustomerService {
+  private readonly logger = new Logger(CustomerService.name);
   constructor(
     private readonly customerRepository: CustomerRepository,
     private readonly reportingService: ReportingService,
   ) {}
 
-  create(createCustomerInput: CreateCustomerInput) {
-    return this.customerRepository.save(createCustomerInput);
+  create(createCustomerInput: CreateCustomerInput, queryRunner?: QueryRunner) {
+    const customerRepo = queryRunner
+      ? queryRunner.manager.getRepository(Customer)
+      : this.customerRepository;
+    return customerRepo.save(createCustomerInput);
   }
 
   findAll(limit: number, offset: number, search?: string) {
@@ -38,8 +49,24 @@ export class CustomerService {
     return this.customerRepository.find(queryOptions);
   }
 
-  findOne(id: number) {
-    return this.customerRepository.findOneBy({ id });
+  findOne(id: number, queryRunner?: QueryRunner) {
+    const customerRepo = queryRunner
+      ? queryRunner.manager.getRepository(Customer)
+      : this.customerRepository;
+    try {
+      return customerRepo.findOneByOrFail({ id });
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException(`Customer with ID ${id} not found.`);
+      }
+      this.logger.error(
+        `Unexpected error when finding customer with ID ${id}: ${error.message}`,
+        error.stack,
+      );
+      throw new Error(
+        `An unexpected error occurred while retrieving the customer with ID ${id}.`,
+      );
+    }
   }
 
   async update(id: number, updateCustomerInput: UpdateCustomerInput) {
@@ -74,5 +101,21 @@ export class CustomerService {
       currentMonthCount,
       monthlyGrowth,
     };
+  }
+
+  async ensureCustomer(
+    input: CreateCustomerInput,
+    customerId: string,
+    queryRunner: QueryRunner,
+  ): Promise<Customer> {
+    if (customerId) {
+      const customer = await this.findOne(Number(customerId), queryRunner);
+      this.logger.log(`Customer found with id: ${customer.id}`);
+      return customer;
+    } else {
+      const createdCustomer = await this.create(input, queryRunner);
+      this.logger.log(`Created new customer with id: ${createdCustomer.id}`);
+      return createdCustomer;
+    }
   }
 }

@@ -3,8 +3,20 @@ import { PurchaseStatus } from '../enums/purchase-status.enum';
 import { IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
 import { WarrantyStatus } from '../enums/warranty-status.enum';
 
+export interface PurchaseInput {
+  purchase_status: PurchaseStatus;
+  warranty_status: WarrantyStatus;
+  purchase_date?: Date;
+  invoice_number?: string;
+  warranty_expiry?: Date;
+  asc_start_date?: Date;
+  asc_expiry_date?: Date;
+  product_id: string;
+  customer_id: string;
+}
+
 @InputType()
-export class CreatePurchaseInput {
+export class CreatePurchaseInput implements PurchaseInput {
   @Field(() => PurchaseStatus)
   @IsEnum(PurchaseStatus)
   purchase_status: PurchaseStatus;
@@ -41,9 +53,9 @@ export class CreatePurchaseInput {
 
   @Field(() => String)
   @IsString()
-  productId: string;
+  product_id: string;
 
   @Field(() => String)
   @IsString()
-  customerId: string;
+  customer_id: string;
 }

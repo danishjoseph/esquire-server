@@ -8,6 +8,7 @@ import {
   EntityNotFoundError,
   FindManyOptions,
   Like,
+  QueryRunner,
 } from 'typeorm';
 import { GrowthMetrics, ReportingService } from '../reports/reporting.service';
 
@@ -18,8 +19,14 @@ export class ProductService {
     private readonly productRepository: ProductRepository,
     private readonly reportingService: ReportingService,
   ) {}
-  async create(createProductInput: CreateProductInput) {
-    return this.productRepository.save(createProductInput);
+  async create(
+    createProductInput: CreateProductInput,
+    queryRunner?: QueryRunner,
+  ) {
+    const productRepo = queryRunner
+      ? queryRunner.manager.getRepository(Product)
+      : this.productRepository;
+    return productRepo.save(createProductInput);
   }
 
   findAll(limit: number, offset: number, search?: string) {
@@ -35,9 +42,12 @@ export class ProductService {
     return this.productRepository.find(queryOptions);
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, queryRunner?: QueryRunner) {
+    const productRepo = queryRunner
+      ? queryRunner.manager.getRepository(Product)
+      : this.productRepository;
     try {
-      return await this.productRepository.findOneByOrFail({ id });
+      return productRepo.findOneByOrFail({ id });
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException(`Product with ID ${id} not found.`);
@@ -78,5 +88,28 @@ export class ProductService {
       currentMonthCount,
       monthlyGrowth,
     };
+  }
+
+  async ensureProduct(
+    input: CreateProductInput,
+    productId: string,
+    queryRunner: QueryRunner,
+  ): Promise<Product> {
+    if (productId) {
+      const product = await this.findOne(Number(productId), queryRunner);
+      this.logger.log(`Product found with id: ${product.id}`);
+      return product;
+    } else {
+      const productData = {
+        serial_number: input.serial_number,
+        category: input.category,
+        name: input.name,
+        brand: input.brand,
+        model_name: input.model_name,
+      };
+      const createdProduct = await this.create(productData, queryRunner);
+      this.logger.log(`Created new product with id: ${createdProduct.id}`);
+      return createdProduct;
+    }
   }
 }
