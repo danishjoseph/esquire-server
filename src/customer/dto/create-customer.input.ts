@@ -1,8 +1,21 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional, IsString } from 'class-validator';
 
+export interface CustomerInput {
+  name: string;
+  mobile: string;
+  alt_mobile?: string;
+  email?: string;
+  address?: string;
+  house_office?: string;
+  street_building?: string;
+  area?: string;
+  pincode?: string;
+  district?: string;
+}
+
 @InputType()
-export class CreateCustomerInput {
+export class CreateCustomerInput implements CustomerInput {
   @Field()
   @IsString()
   name: string;

@@ -16,6 +16,7 @@ import { Customer } from '../../customer/entities/customer.entity';
 import { PurchaseStatus } from '../enums/purchase-status.enum';
 import { WarrantyStatus } from '../enums/warranty-status.enum';
 import { Service } from '../../service/entities/service.entity';
+import { IPurchase } from '../dto/create-purchase.input';
 
 registerEnumType(PurchaseStatus, {
   name: 'PurchaseStatus',
@@ -29,7 +30,7 @@ registerEnumType(WarrantyStatus, {
 @ObjectType()
 @Unique(['invoice_number'])
 @Index('IDX_PURCHASE_INVOICE_NUMBER', ['invoice_number'])
-export class Purchase {
+export class Purchase implements IPurchase {
   @PrimaryGeneratedColumn()
   @Field()
   id: number;
@@ -51,23 +52,23 @@ export class Purchase {
   @Field(() => WarrantyStatus)
   warranty_status: WarrantyStatus;
 
-  @Column()
-  @Field(() => Date, { nullable: true })
+  @Field(() => String, { nullable: true })
+  @Column({ type: 'date', nullable: true })
   purchase_date: Date;
 
-  @Column({ length: 50 })
+  @Column({ length: 50, nullable: true })
   @Field(() => String, { nullable: true })
   invoice_number: string;
 
-  @Column({ nullable: true })
-  @Field(() => Date, { nullable: true })
+  @Column({ type: 'date', nullable: true })
+  @Field(() => String, { nullable: true })
   warranty_expiry: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: 'date', nullable: true })
   @Field(() => Date, { nullable: true })
   asc_start_date: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: 'date', nullable: true })
   @Field(() => Date, { nullable: true })
   asc_expiry_date: Date;
 

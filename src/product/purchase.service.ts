@@ -8,6 +8,8 @@ import { EntityNotFoundError, QueryRunner } from 'typeorm';
 import { Purchase } from './entities/purchase.entity';
 import { ProductService } from './product.service';
 import { CustomerService } from 'src/customer/customer.service';
+import { CustomerInput } from 'src/customer/dto/create-customer.input';
+import { ProductInput } from './dto/create-product.input';
 
 @Injectable()
 export class PurchaseService {
@@ -121,7 +123,22 @@ export class PurchaseService {
       this.logger.log(`Existing Purchase found with id: ${purchase.id}`);
       return purchase;
     } else {
-      const createdPurchase = await this.create(input, queryRunner);
+      const customer = await this.customerService.ensureCustomer(
+        input?.customer as CustomerInput,
+        input?.customer_id as string,
+        queryRunner,
+      );
+      const product = await this.productService.ensureProduct(
+        input?.product as ProductInput,
+        input?.product_id as string,
+        queryRunner,
+      );
+      const purchaseData = {
+        ...input,
+        product_id: String(product.id),
+        customer_id: String(customer.id),
+      };
+      const createdPurchase = await this.create(purchaseData, queryRunner);
       this.logger.log(`Created new purchase with id: ${createdPurchase.id}`);
       return createdPurchase;
     }

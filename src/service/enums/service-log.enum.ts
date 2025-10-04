@@ -1,0 +1,6 @@
+export enum ServiceLogType {
+  DIAGNOSIS = 'DIAGNOSIS',
+  COMPLAINTS = 'COMPLAINTS',
+  STAUS_UPDATE = 'STATUS_UPDATE',
+  FEEDBACK = 'FEEDBACK',
+}

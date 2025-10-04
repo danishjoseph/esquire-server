@@ -18,6 +18,7 @@ import { ProductCondition } from '../enums/product-condition.enum';
 import { ServiceType } from '../enums/service-type.enum';
 import { Accessory } from './accessories.entity';
 import { Purchase } from '../../product/entities/purchase.entity';
+import { ServiceLog } from './service-log.entity';
 
 registerEnumType(TicketStatus, {
   name: 'TicketStatus',
@@ -47,6 +48,12 @@ export class Service implements IService {
   })
   @Field(() => [Accessory])
   accessories: Accessory[];
+
+  @OneToMany(() => ServiceLog, (service_log) => service_log.service, {
+    cascade: true,
+  })
+  @Field(() => [ServiceLog])
+  service_logs: ServiceLog[];
 
   @ManyToOne(() => Purchase, (purchase) => purchase.services)
   @Field(() => Purchase)
@@ -83,8 +90,9 @@ export class Service implements IService {
   @Column({
     type: 'enum',
     enum: ServiceStatus,
+    nullable: true,
   })
-  @Field(() => ServiceStatus)
+  @Field(() => ServiceStatus, { nullable: true })
   service_status: ServiceStatus;
 
   @Index('IDX_SERVICE_CASE_ID', { unique: true })

@@ -20,6 +20,6 @@ import { PurchaseResolver } from './purchase.resolver';
     PurchaseRepository,
     PurchaseResolver,
   ],
-  exports: [ProductService, PurchaseService],
+  exports: [PurchaseService],
 })
 export class ProductModule {}

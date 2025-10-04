@@ -9,13 +9,13 @@ import { ServiceSection } from './entities/service-section.entity';
 import { ServiceRepository } from './service.respository';
 import { ServiceSectionService } from './service-section.service';
 import { AccessoryService } from './accessory.service';
-import { CustomerModule } from '../customer/customer.module';
+import { ReportsModule } from 'src/reports/reports.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Accessory, ServiceSection, Service]),
     ProductModule,
-    CustomerModule,
+    ReportsModule,
   ],
   providers: [
     ServiceRepository,

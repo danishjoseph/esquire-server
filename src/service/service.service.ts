@@ -6,13 +6,11 @@ import {
 } from '@nestjs/common';
 import { CreateServiceInput } from './dto/create-service.input';
 import { UpdateServiceInput } from './dto/update-service.input';
-import { ProductService } from '../product/product.service';
 import { PurchaseService } from '../product/purchase.service';
 import {
   DataSource,
   DeleteResult,
   EntityManager,
-  EntityNotFoundError,
   FindManyOptions,
   Like,
 } from 'typeorm';
@@ -25,7 +23,10 @@ import { ServiceRepository } from './service.respository';
 import { TicketStatus } from './enums/ticket-status.enum';
 import { Purchase } from 'src/product/entities/purchase.entity';
 import { ServiceSectionService } from './service-section.service';
-import { CustomerService } from 'src/customer/customer.service';
+import { GrowthMetrics, ReportingService } from 'src/reports/reporting.service';
+import { PurchaseInput } from 'src/product/dto/create-purchase.input';
+import { NotFoundError } from 'rxjs';
+import { ServiceLog } from './entities/service-log.entity';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
   [TicketStatus.IN_PROGRESS]: [TicketStatus.QC],
@@ -40,11 +41,10 @@ export class ServiceService {
   private readonly logger = new Logger(ServiceRepository.name);
   constructor(
     private dataSource: DataSource,
-    private readonly productService: ProductService,
     private readonly purchaseService: PurchaseService,
-    private readonly customerService: CustomerService,
     private readonly serviceRepository: ServiceRepository,
     private readonly serviceSectionService: ServiceSectionService,
+    private readonly reportingService: ReportingService,
   ) {}
 
   async create(input: CreateServiceInput) {
@@ -53,24 +53,9 @@ export class ServiceService {
 
     try {
       await queryRunner.startTransaction();
-      const customer = await this.customerService.ensureCustomer(
-        { ...input, name: input.customer_name },
-        input.customer_id,
-        queryRunner,
-      );
-      const product = await this.productService.ensureProduct(
-        input,
-        input.product_id,
-        queryRunner,
-      );
-      const purchaseData = {
-        ...input,
-        product_id: String(product.id),
-        customer_id: String(customer.id),
-      };
       const purchase = await this.purchaseService.ensurePurchase(
-        purchaseData,
-        input.purchase_id,
+        input?.purchase as PurchaseInput,
+        input?.purchase_id as string,
         queryRunner,
       );
       const createdService = await this.createService(
@@ -117,12 +102,26 @@ export class ServiceService {
     return this.serviceRepository.find(queryOptions);
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
     try {
-      return this.serviceRepository.findOneByOrFail({ id });
-    } catch (error) {
-      if (error instanceof EntityNotFoundError) {
+      const entity = await this.serviceRepository.findOne({
+        where: { id },
+        relations: [
+          'purchase',
+          'purchase.product',
+          'purchase.customer',
+          'accessories',
+          'service_section',
+          'service_logs',
+        ],
+      });
+      if (!entity) {
         throw new NotFoundException(`Service ticket with ID ${id} not found.`);
+      }
+      return entity;
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error; // Re-throw if it's our custom NotFoundException
       }
       this.logger.error(
         `Unexpected error when finding service ticket with ID ${id}: ${error.message}`,
@@ -175,7 +174,7 @@ export class ServiceService {
     return deleteResult && deleteResult.affected && deleteResult.affected > 0;
   }
 
-  async metrics() {
+  async statistics() {
     const total = await this.serviceRepository.count();
     const pending = await this.serviceRepository.countBy({
       status: TicketStatus.IN_PROGRESS,
@@ -191,16 +190,36 @@ export class ServiceService {
     };
   }
 
+  async findMetrics(): Promise<GrowthMetrics> {
+    const totalProducts = await this.serviceRepository.getTotalServices();
+    const { monthlyGrowth, currentMonthCount } =
+      await this.reportingService.calculateGrowthForEntity(
+        this.serviceRepository,
+      );
+
+    return {
+      total: totalProducts,
+      currentMonthCount,
+      monthlyGrowth,
+    };
+  }
+
   private async createService(
     input: CreateServiceInput,
     purchase: Purchase,
     queryRunner: QueryRunner,
   ) {
     const accessoryRepository = queryRunner.manager.getRepository(Accessory);
+    const serviceLogRepository = queryRunner.manager.getRepository(ServiceLog);
     const serviceRepository = queryRunner.manager.getRepository(Service);
     const accessories =
       input.accessories?.map((accessoryInput) =>
         accessoryRepository.create(accessoryInput),
+      ) || [];
+
+    const service_logs =
+      input.service_logs?.map((serviceLogInput) =>
+        serviceLogRepository.create(serviceLogInput),
       ) || [];
 
     const caseId = await this.generateCaseId(
@@ -220,6 +239,7 @@ export class ServiceService {
       product_condition: input.product_condition,
       accessories,
       purchase,
+      service_logs,
     });
     return serviceRepository.save(serviceEntity);
   }

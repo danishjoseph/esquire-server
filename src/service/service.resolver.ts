@@ -4,7 +4,8 @@ import { Service } from './entities/service.entity';
 import { CreateServiceInput } from './dto/create-service.input';
 import { UpdateServiceInput } from './dto/update-service.input';
 import { TicketStatus } from './enums/ticket-status.enum';
-import { ServiceMetrics } from './dto/service-metrics';
+import { ServiceMetrics, ServiceStatusMetrics } from './dto/service-metrics';
+import { GrowthMetrics } from 'src/reports/reporting.service';
 
 @Resolver(() => Service)
 export class ServiceResolver {
@@ -53,8 +54,13 @@ export class ServiceResolver {
     return this.serviceService.remove(id);
   }
 
+  @Query(() => ServiceStatusMetrics, { name: 'serviceStatusMetrics' })
+  serviceStatusStatistics(): Promise<ServiceStatusMetrics> {
+    return this.serviceService.statistics();
+  }
+
   @Query(() => ServiceMetrics, { name: 'serviceMetrics' })
-  serviceStatistics(): Promise<ServiceMetrics> {
-    return this.serviceService.metrics();
+  serviceStatistics(): Promise<GrowthMetrics> {
+    return this.serviceService.findMetrics();
   }
 }
