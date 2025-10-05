@@ -42,7 +42,7 @@ export class ReportingService {
     }
 
     return {
-      monthlyGrowth: growth,
+      monthlyGrowth: Number(growth.toFixed(2)),
       currentMonthCount,
     };
   }
