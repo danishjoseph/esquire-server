@@ -65,11 +65,11 @@ export class Purchase implements IPurchase {
   warranty_expiry: Date;
 
   @Column({ type: 'date', nullable: true })
-  @Field(() => Date, { nullable: true })
+  @Field(() => String, { nullable: true })
   asc_start_date: Date;
 
   @Column({ type: 'date', nullable: true })
-  @Field(() => Date, { nullable: true })
+  @Field(() => String, { nullable: true })
   asc_expiry_date: Date;
 
   @ManyToOne(() => Product, (product) => product.purchases)
