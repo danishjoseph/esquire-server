@@ -1,7 +1,15 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
 import { TicketStatus } from '../enums/ticket-status.enum';
-import { IsEnum, IsInt, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  ValidateNested,
+} from 'class-validator';
 import { ServiceSectionName } from '../enums/service-section-name.enum';
+import { CreateServiceLogInput } from './create-service-log.input';
+import { Type } from 'class-transformer';
 
 @InputType()
 export class UpdateServiceInput {
@@ -17,4 +25,10 @@ export class UpdateServiceInput {
   @IsEnum(ServiceSectionName)
   @IsOptional()
   service_section_name?: ServiceSectionName;
+
+  @Field(() => [CreateServiceLogInput])
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateServiceLogInput)
+  service_logs: CreateServiceLogInput[];
 }

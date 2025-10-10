@@ -10,6 +10,7 @@ import { ServiceRepository } from './service.respository';
 import { ServiceSectionService } from './service-section.service';
 import { AccessoryService } from './accessory.service';
 import { ReportsModule } from 'src/reports/reports.module';
+import { ServiceLogRepository } from './service-log.respository';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ReportsModule } from 'src/reports/reports.module';
     ServiceService,
     ServiceSectionService,
     AccessoryService,
+    ServiceLogRepository,
   ],
 })
 export class ServiceModule {}

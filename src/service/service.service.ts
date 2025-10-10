@@ -27,6 +27,7 @@ import { GrowthMetrics, ReportingService } from 'src/reports/reporting.service';
 import { PurchaseInput } from 'src/product/dto/create-purchase.input';
 import { NotFoundError } from 'rxjs';
 import { ServiceLog } from './entities/service-log.entity';
+import { ServiceLogRepository } from './service-log.respository';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
   [TicketStatus.IN_PROGRESS]: [TicketStatus.QC],
@@ -45,6 +46,7 @@ export class ServiceService {
     private readonly serviceRepository: ServiceRepository,
     private readonly serviceSectionService: ServiceSectionService,
     private readonly reportingService: ReportingService,
+    private readonly serviceLogRepository: ServiceLogRepository,
   ) {}
 
   async create(input: CreateServiceInput) {
@@ -134,7 +136,15 @@ export class ServiceService {
   }
 
   async update(id: number, updateServiceInput: UpdateServiceInput) {
-    const existingService = await this.serviceRepository.findOneBy({ id });
+    const {
+      service_section_name,
+      service_logs: serviceLogInputs,
+      status,
+    } = updateServiceInput;
+    const existingService = await this.serviceRepository.findOne({
+      where: { id },
+      relations: ['service_section'],
+    });
     if (!existingService) {
       throw new NotFoundException(`Service with ID ${id} not found.`);
     }
@@ -143,7 +153,18 @@ export class ServiceService {
       existingService.status,
       updateServiceInput.status,
     );
-    const { service_section_name, ...otherProperties } = updateServiceInput;
+    if (existingService.service_section) {
+      existingService.status = status;
+    }
+    const newLogs =
+      serviceLogInputs?.map(({ log_description, service_log_type }) =>
+        this.serviceLogRepository.create({
+          service_log_type,
+          log_description,
+          service: existingService,
+        }),
+      ) || [];
+    await this.serviceLogRepository.save(newLogs);
     // Check if the update includes a service section name
     if (service_section_name) {
       if (existingService.status !== TicketStatus.IN_PROGRESS) {
@@ -160,11 +181,8 @@ export class ServiceService {
         );
       }
 
-      // Assign the section object to the existingService
       existingService.service_section = section;
     }
-
-    this.serviceRepository.merge(existingService, otherProperties);
 
     return this.serviceRepository.save(existingService);
   }
