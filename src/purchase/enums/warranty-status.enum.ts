@@ -1,0 +1,6 @@
+export enum WarrantyStatus {
+  UNDER_1YR = 'UNDER_1YR',
+  WARRANTY_UPGRADE = 'WARRANTY_UPGRADE',
+  ASC = 'ASC',
+  NON_WARRANTY = 'NON_WARRANTY',
+}

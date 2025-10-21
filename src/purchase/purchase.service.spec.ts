@@ -5,31 +5,36 @@ import { WarrantyStatus } from './enums/warranty-status.enum';
 import { CreatePurchaseInput } from './dto/create-purchase.input';
 import { PurchaseStatus } from './enums/purchase-status.enum';
 import { UpdatePurchaseInput } from './dto/update-purchase.input';
-import { ProductRepository } from './product.respository';
+import { ProductService } from '../product/product.service';
+import { CustomerService } from '../customer/customer.service';
 
 describe('PurchaseService', () => {
   let service: PurchaseService;
-  let mockProductRepository: Partial<
-    Record<keyof ProductRepository, jest.Mock>
-  >;
   let mockPurchaseRepository: Partial<
     Record<keyof PurchaseRepository, jest.Mock>
   >;
+  const mockCustomerService = {
+    findOne: jest.fn(),
+    ensureCustomer: jest.fn(),
+  };
+
+  const mockProductService = {
+    findOne: jest.fn(),
+  };
 
   beforeEach(async () => {
     mockPurchaseRepository = {
+      create: jest.fn(),
       save: jest.fn(),
       findOneBy: jest.fn(),
       merge: jest.fn(),
-    };
-    mockProductRepository = {
-      findOneBy: jest.fn(),
     };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PurchaseService,
         { provide: PurchaseRepository, useValue: mockPurchaseRepository },
-        { provide: ProductRepository, useValue: mockProductRepository },
+        { provide: ProductService, useValue: mockProductService },
+        { provide: CustomerService, useValue: mockCustomerService },
       ],
     }).compile();
 
@@ -154,15 +159,19 @@ describe('PurchaseService', () => {
 
   it('should create the purchase status', async () => {
     const input = {
-      productId: 'mockId',
+      product_id: 'mockId',
       purchase_status: PurchaseStatus.NON_ESQUIRE,
       warranty_status: WarrantyStatus.NON_WARRANTY,
     } as CreatePurchaseInput;
-    mockProductRepository.findOneBy?.mockReturnValueOnce({
-      id: input.productId,
+    mockProductService.findOne?.mockReturnValueOnce({
+      id: input.product_id,
+    });
+    mockCustomerService.findOne?.mockReturnValueOnce({
+      id: input.customer_id,
     });
     await service.create(input);
-    expect(mockPurchaseRepository.save).toHaveBeenCalledWith(input);
+    expect(mockPurchaseRepository.create).toHaveBeenCalled();
+    expect(mockPurchaseRepository.save).toHaveBeenCalled();
   });
 
   it('should update the existing purchase status', async () => {
@@ -172,8 +181,8 @@ describe('PurchaseService', () => {
       purchase_status: PurchaseStatus.NON_ESQUIRE,
       warranty_status: WarrantyStatus.NON_WARRANTY,
     } as UpdatePurchaseInput;
-    mockProductRepository.findOneBy?.mockReturnValueOnce({
-      id: input.productId,
+    mockProductService.findOne?.mockReturnValueOnce({
+      id: input.product_id,
     });
     mockPurchaseRepository.findOneBy?.mockReturnValueOnce({
       id: input.id,

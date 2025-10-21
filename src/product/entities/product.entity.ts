@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { registerEnumType } from '@nestjs/graphql';
 import { ProductCategory } from '../enums/product.category.enum';
-import { Purchase } from './purchase.entity';
+import { Purchase } from '../../purchase/entities/purchase.entity';
 
 registerEnumType(ProductCategory, {
   name: 'ProductCategory',

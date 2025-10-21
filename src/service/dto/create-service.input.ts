@@ -17,7 +17,7 @@ import { ServiceType } from '../enums/service-type.enum';
 import {
   CreatePurchaseInput,
   PurchaseInput,
-} from '../../product/dto/create-purchase.input';
+} from '../../purchase/dto/create-purchase.input';
 import { CreateServiceLogInput, IServiceLog } from './create-service-log.input';
 
 export interface IService {

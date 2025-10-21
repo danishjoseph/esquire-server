@@ -17,7 +17,7 @@ import { ServiceStatus } from '../enums/service-status.enum';
 import { ProductCondition } from '../enums/product-condition.enum';
 import { ServiceType } from '../enums/service-type.enum';
 import { Accessory } from './accessories.entity';
-import { Purchase } from '../../product/entities/purchase.entity';
+import { Purchase } from '../../purchase/entities/purchase.entity';
 import { ServiceLog } from './service-log.entity';
 
 registerEnumType(TicketStatus, {

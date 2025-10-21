@@ -3,20 +3,20 @@ import { ServiceService } from './service.service';
 import { ServiceResolver } from './service.resolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Service } from './entities/service.entity';
-import { ProductModule } from '../product/product.module';
 import { Accessory } from './entities/accessories.entity';
 import { ServiceSection } from './entities/service-section.entity';
 import { ServiceRepository } from './service.respository';
 import { ServiceSectionService } from './service-section.service';
 import { AccessoryService } from './accessory.service';
-import { ReportsModule } from 'src/reports/reports.module';
+import { ReportsModule } from '../reports/reports.module';
 import { ServiceLogRepository } from './service-log.respository';
+import { PurchaseModule } from 'purchase/purchase.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Accessory, ServiceSection, Service]),
-    ProductModule,
     ReportsModule,
+    PurchaseModule,
   ],
   providers: [
     ServiceRepository,

@@ -4,22 +4,11 @@ import { ProductResolver } from './product.resolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { ProductRepository } from './product.respository';
-import { CustomerModule } from '../customer/customer.module';
-import { ReportsModule } from '../reports/reports.module';
-import { PurchaseService } from './purchase.service';
-import { PurchaseRepository } from './purchase.respository';
-import { PurchaseResolver } from './purchase.resolver';
+import { ReportsModule } from 'reports/reports.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product]), CustomerModule, ReportsModule],
-  providers: [
-    ProductRepository,
-    ProductResolver,
-    ProductService,
-    PurchaseService,
-    PurchaseRepository,
-    PurchaseResolver,
-  ],
-  exports: [PurchaseService],
+  imports: [TypeOrmModule.forFeature([Product]), ReportsModule],
+  providers: [ProductRepository, ProductResolver, ProductService],
+  exports: [ProductService],
 })
 export class ProductModule {}

@@ -6,10 +6,10 @@ import { WarrantyStatus } from './enums/warranty-status.enum';
 import { UpdatePurchaseInput } from './dto/update-purchase.input';
 import { EntityNotFoundError, QueryRunner } from 'typeorm';
 import { Purchase } from './entities/purchase.entity';
-import { ProductService } from './product.service';
-import { CustomerService } from 'src/customer/customer.service';
-import { CustomerInput } from 'src/customer/dto/create-customer.input';
-import { ProductInput } from './dto/create-product.input';
+import { ProductService } from '../product/product.service';
+import { CustomerService } from '../customer/customer.service';
+import { CustomerInput } from '../customer/dto/create-customer.input';
+import { ProductInput } from '../product/dto/create-product.input';
 
 @Injectable()
 export class PurchaseService {

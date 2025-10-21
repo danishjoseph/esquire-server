@@ -11,7 +11,7 @@ import {
   QueryRunner,
 } from 'typeorm';
 import { Customer } from './entities/customer.entity';
-import { GrowthMetrics, ReportingService } from 'src/reports/reporting.service';
+import { GrowthMetrics, ReportingService } from '../reports/reporting.service';
 
 @Injectable()
 export class CustomerService {

@@ -12,9 +12,12 @@ import { WarrantyStatus } from '../enums/warranty-status.enum';
 import {
   CreateCustomerInput,
   CustomerInput,
-} from 'src/customer/dto/create-customer.input';
-import { CreateProductInput, ProductInput } from './create-product.input';
+} from '../../customer/dto/create-customer.input';
 import { Type } from 'class-transformer';
+import {
+  CreateProductInput,
+  ProductInput,
+} from 'product/dto/create-product.input';
 
 export interface IPurchase {
   purchase_status: PurchaseStatus;

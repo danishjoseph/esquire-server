@@ -3,17 +3,17 @@ import { ServiceService } from './service.service';
 import { Service } from './entities/service.entity';
 import { Accessory } from './entities/accessories.entity';
 import { Repository } from 'typeorm';
-import { ProductService } from '../product/product.service';
-import { PurchaseService } from '../product/purchase.service';
+import { PurchaseService } from '../purchase/purchase.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { TicketStatus } from './enums/ticket-status.enum';
-import { Product } from '../product/entities/product.entity';
-import { Purchase } from '../product/entities/purchase.entity';
+import { Purchase } from '../purchase/entities/purchase.entity';
 import { CreateServiceInput } from './dto/create-service.input';
 import { DataSource } from 'typeorm';
 import { ServiceRepository } from './service.respository';
 import { ServiceSectionService } from './service-section.service';
 import { ServiceSection } from './entities/service-section.entity';
+import { ServiceLogRepository } from './service-log.respository';
+import { ReportingService } from '../reports/reporting.service';
 
 const mockQueryRunner = {
   connect: jest.fn(),
@@ -32,14 +32,10 @@ describe('ServiceService', () => {
     save: jest.fn(),
     create: jest.fn(),
     count: jest.fn(),
+    findOne: jest.fn(),
   };
-  const productRepoMock = {
-    save: jest.fn(),
-    create: jest.fn(),
-  };
-  const purchaseRepoMock = {
-    save: jest.fn(),
-    create: jest.fn(),
+  const purchaseServiceMock = {
+    ensurePurchase: jest.fn(),
   };
 
   const accessoryRepoMock = {
@@ -50,15 +46,20 @@ describe('ServiceService', () => {
     findOne: jest.fn(),
   };
 
+  const serviceLogRepoMock = {
+    findOne: jest.fn(),
+  };
+
+  const mockReportingService = {
+    calculateGrowthForEntity: jest.fn(),
+  };
+
   mockQueryRunner.manager.getRepository = jest.fn((entity) => {
     if (entity === Service) return serviceRepoMock;
-    if (entity === Product) return productRepoMock;
-    if (entity === Purchase) return purchaseRepoMock;
+    if (entity === Purchase) return purchaseServiceMock;
     if (entity === Accessory) return accessoryRepoMock;
-    // Add more repositories as necessary
   });
   let serviceRepository: jest.Mocked<Repository<Service>>;
-  let productService: jest.Mocked<ProductService>;
   let purchaseService: jest.Mocked<PurchaseService>;
 
   beforeEach(async () => {
@@ -85,23 +86,26 @@ describe('ServiceService', () => {
           useValue: serviceSectionMock,
         },
         {
-          provide: ProductService,
-          useValue: productRepoMock,
-        },
-        {
           provide: PurchaseService,
-          useValue: purchaseRepoMock,
+          useValue: purchaseServiceMock,
         },
         {
           provide: ServiceRepository,
           useValue: serviceRepoMock,
+        },
+        {
+          provide: ServiceLogRepository,
+          useValue: serviceLogRepoMock,
+        },
+        {
+          provide: ReportingService,
+          useValue: mockReportingService,
         },
       ],
     }).compile();
 
     service = module.get<ServiceService>(ServiceService);
     serviceRepository = module.get(getRepositoryToken(Service));
-    productService = module.get(ProductService);
     purchaseService = module.get(PurchaseService);
   });
 
@@ -117,19 +121,11 @@ describe('ServiceService', () => {
       status: TicketStatus.IN_PROGRESS,
       // other necessary properties initialized
     };
-    const mockProduct: Partial<Product> = {
-      id: 1,
-      name: 'Sample Product',
-      purchases: [],
-    };
 
     serviceRepository.create.mockReturnValue(mockCreate as Service);
     serviceRepository.save.mockResolvedValue(mockCreate as Service);
-    productService.create.mockResolvedValue(mockProduct as Product);
-    purchaseService.create.mockResolvedValue({
+    purchaseService.ensurePurchase.mockResolvedValue({
       ...({} as unknown as Purchase),
-      product_id: String(2),
-      customer_id: String(1),
     });
 
     // Call the create method and execute
@@ -141,8 +137,7 @@ describe('ServiceService', () => {
     } as unknown as CreateServiceInput);
 
     expect(result).toEqual({ id: 1, status: TicketStatus.IN_PROGRESS });
-    expect(productService.create).toHaveBeenCalled();
-    expect(purchaseService.create).toHaveBeenCalled();
+    expect(purchaseService.ensurePurchase).toHaveBeenCalled();
     expect(serviceRepository.save).toHaveBeenCalled();
   });
 });

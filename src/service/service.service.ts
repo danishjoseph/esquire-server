@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CreateServiceInput } from './dto/create-service.input';
 import { UpdateServiceInput } from './dto/update-service.input';
-import { PurchaseService } from '../product/purchase.service';
+import { PurchaseService } from '../purchase/purchase.service';
 import {
   DataSource,
   DeleteResult,
@@ -21,13 +21,13 @@ import dayjs from 'dayjs';
 import { ServiceType } from './enums/service-type.enum';
 import { ServiceRepository } from './service.respository';
 import { TicketStatus } from './enums/ticket-status.enum';
-import { Purchase } from 'src/product/entities/purchase.entity';
 import { ServiceSectionService } from './service-section.service';
-import { GrowthMetrics, ReportingService } from 'src/reports/reporting.service';
-import { PurchaseInput } from 'src/product/dto/create-purchase.input';
+import { GrowthMetrics, ReportingService } from '../reports/reporting.service';
 import { NotFoundError } from 'rxjs';
 import { ServiceLog } from './entities/service-log.entity';
 import { ServiceLogRepository } from './service-log.respository';
+import { Purchase } from 'purchase/entities/purchase.entity';
+import { PurchaseInput } from 'purchase/dto/create-purchase.input';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
   [TicketStatus.IN_PROGRESS]: [TicketStatus.QC],

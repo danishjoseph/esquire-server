@@ -1,5 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { GrowthMetrics } from 'src/reports/reporting.service';
+import { GrowthMetrics } from 'reports/reporting.service';
 
 @ObjectType()
 export class ServiceStatusMetrics {

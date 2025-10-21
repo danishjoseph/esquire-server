@@ -11,12 +11,12 @@ import {
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
-import { Product } from './product.entity';
+import { Product } from '../../product/entities/product.entity';
 import { Customer } from '../../customer/entities/customer.entity';
 import { PurchaseStatus } from '../enums/purchase-status.enum';
 import { WarrantyStatus } from '../enums/warranty-status.enum';
 import { Service } from '../../service/entities/service.entity';
-import { IPurchase } from '../dto/create-purchase.input';
+import { IPurchase } from 'purchase/dto/create-purchase.input';
 
 registerEnumType(PurchaseStatus, {
   name: 'PurchaseStatus',

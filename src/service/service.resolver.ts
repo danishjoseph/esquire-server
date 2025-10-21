@@ -5,7 +5,7 @@ import { CreateServiceInput } from './dto/create-service.input';
 import { UpdateServiceInput } from './dto/update-service.input';
 import { TicketStatus } from './enums/ticket-status.enum';
 import { ServiceMetrics, ServiceStatusMetrics } from './dto/service-metrics';
-import { GrowthMetrics } from 'src/reports/reporting.service';
+import { GrowthMetrics } from 'reports/reporting.service';
 
 @Resolver(() => Service)
 export class ServiceResolver {
