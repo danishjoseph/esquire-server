@@ -4,7 +4,13 @@ import { CreatePurchaseInput } from './dto/create-purchase.input';
 import { PurchaseStatus } from './enums/purchase-status.enum';
 import { WarrantyStatus } from './enums/warranty-status.enum';
 import { UpdatePurchaseInput } from './dto/update-purchase.input';
-import { EntityNotFoundError, QueryRunner } from 'typeorm';
+import {
+  DataSource,
+  EntityNotFoundError,
+  FindManyOptions,
+  Like,
+  QueryRunner,
+} from 'typeorm';
 import { Purchase } from './entities/purchase.entity';
 import { ProductService } from '../product/product.service';
 import { CustomerService } from '../customer/customer.service';
@@ -15,6 +21,7 @@ import { ProductInput } from '../product/dto/create-product.input';
 export class PurchaseService {
   private readonly logger = new Logger(PurchaseService.name);
   constructor(
+    private dataSource: DataSource,
     private readonly purchaseRepository: PurchaseRepository,
     private readonly productService: ProductService,
     private readonly customerService: CustomerService,
@@ -36,61 +43,94 @@ export class PurchaseService {
     ],
   };
 
-  async create(createInput: CreatePurchaseInput, queryRunner?: QueryRunner) {
+  findAll(limit: number, offset: number, search?: string) {
+    const queryOptions: FindManyOptions<Purchase> = {
+      skip: offset,
+      take: limit,
+      order: { created_at: 'desc' },
+      relations: ['product', 'customer'],
+    };
+
+    if (search) {
+      queryOptions.where = [{ invoice_number: Like(`%${search}%`) }];
+    }
+    return this.purchaseRepository.find(queryOptions);
+  }
+
+  async create(input: CreatePurchaseInput) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+
+    try {
+      await queryRunner.startTransaction();
+      const customer = await this.customerService.ensureCustomer(
+        input?.customer as CustomerInput,
+        input?.customer_id as string,
+        queryRunner,
+      );
+      const product = await this.productService.ensureProduct(
+        input?.product as ProductInput,
+        input?.product_id as string,
+        queryRunner,
+      );
+      const purchaseData = {
+        ...input,
+        customer,
+        product,
+      };
+      const createdData = await this.createPurchase(purchaseData, queryRunner);
+      return createdData;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async createPurchase(
+    createInput: Omit<CreatePurchaseInput, 'customer_id' | 'product_id'>,
+    queryRunner?: QueryRunner,
+  ) {
     const { purchase_status, warranty_status } = createInput;
     if (!this.isValidWarrantyStatus(purchase_status, warranty_status)) {
       throw new Error('Invalid warranty status for the given purchase status');
     }
     this.validateWarrantyStatusFields(createInput);
-    // Todo: Use transaction
     const purchaseRepo = queryRunner
       ? queryRunner.manager.getRepository(Purchase)
       : this.purchaseRepository;
-
-    const existingProduct = await this.productService.findOne(
-      Number(createInput.product_id),
-      queryRunner,
-    );
-    if (!existingProduct) {
-      throw new NotFoundException(
-        `Product with ID ${createInput.product_id} not found.`,
-      );
-    }
-    const existingCustomer = await this.customerService.findOne(
-      Number(createInput.customer_id),
-      queryRunner,
-    );
-    if (!existingCustomer) {
-      throw new NotFoundException(
-        `Customer with ID ${createInput.product_id} not found.`,
-      );
-    }
-    const purchaseData = purchaseRepo.create({
-      ...createInput,
-      product: existingProduct,
-      customer: existingCustomer,
-    });
+    const purchaseData = purchaseRepo.create(createInput);
     return purchaseRepo.save(purchaseData);
   }
 
-  async update(id: number, updateProductInput: UpdatePurchaseInput) {
-    const { purchase_status, warranty_status } = updateProductInput;
+  async update(id: number, updatePurchaseInput: UpdatePurchaseInput) {
+    const { purchase_status, warranty_status } = updatePurchaseInput;
     if (!this.isValidWarrantyStatus(purchase_status, warranty_status)) {
       throw new Error('Invalid warranty status for the given purchase status');
     }
-    this.validateWarrantyStatusFields(updateProductInput);
-    const existingPurchase = await this.purchaseRepository.findOneBy({ id });
+    this.validateWarrantyStatusFields(updatePurchaseInput);
+    const existingPurchase = await this.purchaseRepository.findOne({
+      where: { id },
+      relations: ['product', 'customer'],
+    });
     if (!existingPurchase) {
       throw new NotFoundException(`Purchase with ID ${id} not found.`);
     }
+    const existingCustomer = await this.customerService.findOne(
+      Number(updatePurchaseInput.customer_id),
+    );
+    if (!existingCustomer) {
+      throw new NotFoundException(`Customer with ID ${id} not found.`);
+    }
     const existingProduct = await this.productService.findOne(
-      Number(updateProductInput.product_id),
+      Number(updatePurchaseInput.product_id),
     );
     if (!existingProduct) {
       throw new NotFoundException(`Product with ID ${id} not found.`);
     }
-    this.purchaseRepository.merge(existingPurchase, updateProductInput);
-    return this.purchaseRepository.save(existingProduct);
+    this.purchaseRepository.merge(existingPurchase, updatePurchaseInput);
+    return this.purchaseRepository.save(existingPurchase);
   }
 
   async findOne(id: number, queryRunner?: QueryRunner) {
@@ -98,10 +138,17 @@ export class PurchaseService {
       ? queryRunner.manager.getRepository(Purchase)
       : this.purchaseRepository;
     try {
-      return purchaseRepo.findOneByOrFail({ id });
+      const entity = await purchaseRepo.findOne({
+        where: { id },
+        relations: ['product', 'customer'],
+      });
+      if (!entity) {
+        throw new NotFoundException(`Purchase data with ID ${id} not found.`);
+      }
+      return entity;
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
-        throw new NotFoundException(`Purchase with ID ${id} not found.`);
+        throw error;
       }
       this.logger.error(
         `Unexpected error when finding purchase with ID ${id}: ${error.message}`,
@@ -135,10 +182,13 @@ export class PurchaseService {
       );
       const purchaseData = {
         ...input,
-        product_id: String(product.id),
-        customer_id: String(customer.id),
+        customer,
+        product,
       };
-      const createdPurchase = await this.create(purchaseData, queryRunner);
+      const createdPurchase = await this.createPurchase(
+        purchaseData,
+        queryRunner,
+      );
       this.logger.log(`Created new purchase with id: ${createdPurchase.id}`);
       return createdPurchase;
     }
