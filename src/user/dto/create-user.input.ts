@@ -3,6 +3,7 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsEnum,
+  IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
@@ -10,23 +11,37 @@ import { Type } from 'class-transformer';
 import { UserRole } from '../enums/user-role.enum';
 
 export interface UserInput {
-  name: string;
-  mobile: string;
+  sub: string;
   role: UserRole;
+  email?: string;
+  name?: string;
+  mobile?: string;
 }
 
 @InputType()
 export class CreateUserInput implements UserInput {
   @Field()
   @IsString()
-  name: string;
-
-  @Field()
-  mobile: string;
+  sub: string;
 
   @Field(() => UserRole)
   @IsEnum(UserRole)
   role: UserRole;
+
+  @Field({ nullable: true })
+  @IsString()
+  @IsOptional()
+  email?: string;
+
+  @Field({ nullable: true })
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  mobile?: string;
 }
 
 @InputType()

@@ -18,11 +18,19 @@ export class User {
 
   @Column()
   @Field()
+  sub: string;
+
+  @Column({ nullable: true })
+  @Field({ nullable: true })
   name: string;
 
-  @Column()
-  @Field()
+  @Column({ length: 20, nullable: true })
+  @Field({ nullable: true })
   mobile: string;
+
+  @Column({ length: 100, nullable: true })
+  @Field({ nullable: true })
+  email: string;
 
   @Column({ type: 'enum', enum: UserRole })
   @Field(() => UserRole)

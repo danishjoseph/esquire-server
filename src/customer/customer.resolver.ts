@@ -5,8 +5,14 @@ import { CreateCustomerInput } from './dto/create-customer.input';
 import { UpdateCustomerInput } from './dto/update-customer.input';
 import { CustomerMetrics } from './dto/customer-metrics';
 import { GrowthMetrics } from 'reports/reporting.service';
+import { Roles } from 'auth/roles.decorator';
+import { UserRole } from 'user/enums/user-role.enum';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'auth/auth.guard';
+import { RolesGuard } from 'auth/roles.guard';
 
 @Resolver(() => Customer)
+@UseGuards(AuthGuard, RolesGuard)
 export class CustomerResolver {
   constructor(private readonly customersService: CustomerService) {}
 
@@ -51,6 +57,7 @@ export class CustomerResolver {
   }
 
   @Mutation(() => Boolean)
+  @Roles(UserRole.ADMIN)
   removeCustomer(@Args('id', { type: () => Int }) id: number) {
     return this.customersService.remove(id);
   }
