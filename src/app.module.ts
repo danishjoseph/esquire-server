@@ -3,13 +3,14 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import datasource from './typeorm.config';
 import { GraphQLModule } from '@nestjs/graphql';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'; // Import statements for driver
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { CustomerModule } from './customer/customer.module';
 import { ProductModule } from './product/product.module';
 import { ReportsModule } from './reports/reports.module';
 import { UserModule } from './user/user.module';
 import { ServiceModule } from './service/service.module';
 import { PurchaseModule } from './purchase/purchase.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { PurchaseModule } from './purchase/purchase.module';
       driver: ApolloDriver,
       autoSchemaFile: true,
       playground: true,
+      context: ({ req }) => ({ req }),
     }),
     CustomerModule,
     ProductModule,
@@ -26,6 +28,7 @@ import { PurchaseModule } from './purchase/purchase.module';
     UserModule,
     ServiceModule,
     PurchaseModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
