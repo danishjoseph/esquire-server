@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Service } from './service.entity';
+import { User } from '../../user/entities/user.entity';
 
 @ObjectType()
 @Entity('accessories')
@@ -39,4 +40,9 @@ export class Accessory implements IAcessory {
   @CreateDateColumn()
   @Field()
   created_at: Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'created_by' })
+  @Field(() => User, { nullable: true })
+  created_by: User;
 }

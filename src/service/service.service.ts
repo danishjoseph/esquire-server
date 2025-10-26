@@ -116,8 +116,10 @@ export class ServiceService {
           'purchase.product',
           'purchase.customer',
           'accessories',
+          'accessories.created_by',
           'service_section',
           'service_logs',
+          'service_logs.updated_by',
         ],
       });
       if (!entity) {
@@ -239,7 +241,7 @@ export class ServiceService {
     const serviceRepository = queryRunner.manager.getRepository(Service);
     const accessories =
       input.accessories?.map((accessoryInput) =>
-        accessoryRepository.create(accessoryInput),
+        accessoryRepository.create({ ...accessoryInput, created_by: user }),
       ) || [];
 
     const service_logs =
