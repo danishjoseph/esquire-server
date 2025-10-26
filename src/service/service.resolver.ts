@@ -8,8 +8,12 @@ import { ServiceMetrics, ServiceStatusMetrics } from './dto/service-metrics';
 import { GrowthMetrics } from 'reports/reporting.service';
 import { CurrentUser } from 'auth/current-user.decorator';
 import { User } from 'user/entities/user.entity';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'auth/auth.guard';
+import { RolesGuard } from 'auth/roles.guard';
 
 @Resolver(() => Service)
+@UseGuards(AuthGuard, RolesGuard)
 export class ServiceResolver {
   constructor(private readonly serviceService: ServiceService) {}
 
@@ -45,10 +49,12 @@ export class ServiceResolver {
   @Mutation(() => Service)
   updateService(
     @Args('updateServiceInput') updateServiceInput: UpdateServiceInput,
+    @CurrentUser() user: User,
   ) {
     return this.serviceService.update(
       updateServiceInput.id,
       updateServiceInput,
+      user,
     );
   }
 

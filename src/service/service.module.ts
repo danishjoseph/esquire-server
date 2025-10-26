@@ -11,12 +11,14 @@ import { AccessoryService } from './accessory.service';
 import { ReportsModule } from '../reports/reports.module';
 import { ServiceLogRepository } from './service-log.respository';
 import { PurchaseModule } from 'purchase/purchase.module';
+import { AuthModule } from 'auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Accessory, ServiceSection, Service]),
     ReportsModule,
     PurchaseModule,
+    AuthModule,
   ],
   providers: [
     ServiceRepository,

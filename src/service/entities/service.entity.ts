@@ -19,6 +19,7 @@ import { ServiceType } from '../enums/service-type.enum';
 import { Accessory } from './accessories.entity';
 import { Purchase } from '../../purchase/entities/purchase.entity';
 import { ServiceLog } from './service-log.entity';
+import { User } from '../../user/entities/user.entity';
 
 registerEnumType(TicketStatus, {
   name: 'TicketStatus',
@@ -134,4 +135,14 @@ export class Service implements IService {
   @UpdateDateColumn()
   @Field()
   updated_at: Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'created_by' })
+  @Field(() => User, { nullable: true })
+  created_by: User;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'updated_by' })
+  @Field(() => User, { nullable: true })
+  updated_by: User;
 }

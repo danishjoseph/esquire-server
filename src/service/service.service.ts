@@ -66,6 +66,7 @@ export class ServiceService {
         input,
         purchase,
         queryRunner,
+        user,
       );
 
       await queryRunner.commitTransaction();
@@ -137,7 +138,7 @@ export class ServiceService {
     }
   }
 
-  async update(id: number, updateServiceInput: UpdateServiceInput) {
+  async update(id: number, updateServiceInput: UpdateServiceInput, user: User) {
     const {
       service_section_name,
       service_logs: serviceLogInputs,
@@ -145,7 +146,7 @@ export class ServiceService {
     } = updateServiceInput;
     const existingService = await this.serviceRepository.findOne({
       where: { id },
-      relations: ['service_section'],
+      relations: ['service_section', 'updated_by'],
     });
     if (!existingService) {
       throw new NotFoundException(`Service with ID ${id} not found.`);
@@ -186,6 +187,7 @@ export class ServiceService {
       existingService.service_section = section;
     }
 
+    existingService.updated_by = user;
     return this.serviceRepository.save(existingService);
   }
 
@@ -228,6 +230,7 @@ export class ServiceService {
     input: CreateServiceInput,
     purchase: Purchase,
     queryRunner: QueryRunner,
+    user: User,
   ) {
     const accessoryRepository = queryRunner.manager.getRepository(Accessory);
     const serviceLogRepository = queryRunner.manager.getRepository(ServiceLog);
@@ -260,6 +263,8 @@ export class ServiceService {
       accessories,
       purchase,
       service_logs,
+      created_by: user,
+      updated_by: user,
     });
     return serviceRepository.save(serviceEntity);
   }
