@@ -28,6 +28,7 @@ import { ServiceLog } from './entities/service-log.entity';
 import { ServiceLogRepository } from './service-log.respository';
 import { Purchase } from 'purchase/entities/purchase.entity';
 import { PurchaseInput } from 'purchase/dto/create-purchase.input';
+import { User } from 'user/entities/user.entity';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
   [TicketStatus.IN_PROGRESS]: [TicketStatus.QC],
@@ -49,7 +50,7 @@ export class ServiceService {
     private readonly serviceLogRepository: ServiceLogRepository,
   ) {}
 
-  async create(input: CreateServiceInput) {
+  async create(input: CreateServiceInput, user: User) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
 
@@ -59,6 +60,7 @@ export class ServiceService {
         input?.purchase as PurchaseInput,
         input?.purchase_id as string,
         queryRunner,
+        user,
       );
       const createdService = await this.createService(
         input,

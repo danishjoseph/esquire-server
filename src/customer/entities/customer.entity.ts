@@ -6,9 +6,12 @@ import {
   UpdateDateColumn,
   Index,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Purchase } from '../../purchase/entities/purchase.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity('customers')
 @ObjectType()
@@ -70,6 +73,16 @@ export class Customer {
   @UpdateDateColumn()
   @Field()
   updated_at: Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'created_by' })
+  @Field(() => User, { nullable: true })
+  created_by: User;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'updated_by' })
+  @Field(() => User, { nullable: true })
+  updated_by: User;
 
   @OneToMany(() => Purchase, (purchase) => purchase.customer, { cascade: true })
   @Field(() => [Purchase])

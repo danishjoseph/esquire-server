@@ -16,6 +16,7 @@ import { ProductService } from '../product/product.service';
 import { CustomerService } from '../customer/customer.service';
 import { CustomerInput } from '../customer/dto/create-customer.input';
 import { ProductInput } from '../product/dto/create-product.input';
+import { User } from 'user/entities/user.entity';
 
 @Injectable()
 export class PurchaseService {
@@ -57,7 +58,7 @@ export class PurchaseService {
     return this.purchaseRepository.find(queryOptions);
   }
 
-  async create(input: CreatePurchaseInput) {
+  async create(input: CreatePurchaseInput, user: User) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
 
@@ -67,6 +68,7 @@ export class PurchaseService {
         input?.customer as CustomerInput,
         input?.customer_id as string,
         queryRunner,
+        user,
       );
       const product = await this.productService.ensureProduct(
         input?.product as ProductInput,
@@ -164,6 +166,7 @@ export class PurchaseService {
     input: CreatePurchaseInput,
     purchaseId: string,
     queryRunner: QueryRunner,
+    user: User,
   ): Promise<Purchase> {
     if (purchaseId) {
       const purchase = await this.findOne(Number(purchaseId), queryRunner);
@@ -174,6 +177,7 @@ export class PurchaseService {
         input?.customer as CustomerInput,
         input?.customer_id as string,
         queryRunner,
+        user,
       );
       const product = await this.productService.ensureProduct(
         input?.product as ProductInput,

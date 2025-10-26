@@ -3,6 +3,8 @@ import { Purchase } from './entities/purchase.entity';
 import { PurchaseService } from './purchase.service';
 import { CreatePurchaseInput } from './dto/create-purchase.input';
 import { UpdatePurchaseInput } from './dto/update-purchase.input';
+import { CurrentUser } from 'auth/current-user.decorator';
+import { User } from 'user/entities/user.entity';
 
 @Resolver(() => Purchase)
 export class PurchaseResolver {
@@ -11,8 +13,9 @@ export class PurchaseResolver {
   @Mutation(() => Purchase)
   createPurchase(
     @Args('createPurchaseInput') createPurchaseInput: CreatePurchaseInput,
+    @CurrentUser() user: User,
   ) {
-    return this.purchaseService.create(createPurchaseInput);
+    return this.purchaseService.create(createPurchaseInput, user);
   }
 
   @Query(() => [Purchase], { name: 'purchases' })

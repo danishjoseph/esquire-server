@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 import { Customer } from './entities/customer.entity';
 import { GrowthMetrics, ReportingService } from '../reports/reporting.service';
+import { User } from 'user/entities/user.entity';
 
 @Injectable()
 export class CustomerService {
@@ -21,11 +22,20 @@ export class CustomerService {
     private readonly reportingService: ReportingService,
   ) {}
 
-  create(createCustomerInput: CreateCustomerInput, queryRunner?: QueryRunner) {
+  create(
+    createCustomerInput: CreateCustomerInput,
+    user: User,
+    queryRunner?: QueryRunner,
+  ) {
     const customerRepo = queryRunner
       ? queryRunner.manager.getRepository(Customer)
       : this.customerRepository;
-    return customerRepo.save(createCustomerInput);
+    const customer = customerRepo.create({
+      ...createCustomerInput,
+      created_by: user,
+      updated_by: user,
+    });
+    return customerRepo.save(customer);
   }
 
   findAll(limit: number, offset: number, search?: string) {
@@ -69,15 +79,21 @@ export class CustomerService {
     }
   }
 
-  async update(id: number, updateCustomerInput: UpdateCustomerInput) {
+  async update(
+    id: number,
+    updateCustomerInput: UpdateCustomerInput,
+    user: User,
+  ) {
     const customer = await this.customerRepository.findOne({
       where: { id },
+      relations: ['updated_by'],
     });
 
     if (!customer) {
       throw new Error('Customer not found');
     }
     this.customerRepository.merge(customer, updateCustomerInput);
+    customer.updated_by = user;
 
     await this.customerRepository.save(customer);
 
@@ -107,13 +123,14 @@ export class CustomerService {
     input: CreateCustomerInput,
     customerId: string,
     queryRunner: QueryRunner,
+    user: User,
   ): Promise<Customer> {
     if (customerId) {
       const customer = await this.findOne(Number(customerId), queryRunner);
       this.logger.log(`Customer found with id: ${customer.id}`);
       return customer;
     } else {
-      const createdCustomer = await this.create(input, queryRunner);
+      const createdCustomer = await this.create(input, user, queryRunner);
       this.logger.log(`Created new customer with id: ${createdCustomer.id}`);
       return createdCustomer;
     }

@@ -10,6 +10,8 @@ import { UserRole } from 'user/enums/user-role.enum';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'auth/auth.guard';
 import { RolesGuard } from 'auth/roles.guard';
+import { CurrentUser } from 'auth/current-user.decorator';
+import { User } from 'user/entities/user.entity';
 
 @Resolver(() => Customer)
 @UseGuards(AuthGuard, RolesGuard)
@@ -19,8 +21,9 @@ export class CustomerResolver {
   @Mutation(() => Customer)
   createCustomer(
     @Args('createCustomerInput') createCustomerInput: CreateCustomerInput,
+    @CurrentUser() user: User,
   ) {
-    return this.customersService.create(createCustomerInput);
+    return this.customersService.create(createCustomerInput, user);
   }
 
   @Query(() => [Customer], { name: 'customers' })
@@ -49,10 +52,12 @@ export class CustomerResolver {
   @Mutation(() => Customer)
   updateCustomer(
     @Args('updateCustomerInput') updateCustomerInput: UpdateCustomerInput,
+    @CurrentUser() user: User,
   ) {
     return this.customersService.update(
       updateCustomerInput.id,
       updateCustomerInput,
+      user,
     );
   }
 

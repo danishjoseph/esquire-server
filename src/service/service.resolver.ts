@@ -6,6 +6,8 @@ import { UpdateServiceInput } from './dto/update-service.input';
 import { TicketStatus } from './enums/ticket-status.enum';
 import { ServiceMetrics, ServiceStatusMetrics } from './dto/service-metrics';
 import { GrowthMetrics } from 'reports/reporting.service';
+import { CurrentUser } from 'auth/current-user.decorator';
+import { User } from 'user/entities/user.entity';
 
 @Resolver(() => Service)
 export class ServiceResolver {
@@ -14,8 +16,9 @@ export class ServiceResolver {
   @Mutation(() => Service)
   createService(
     @Args('createServiceInput') createServiceInput: CreateServiceInput,
+    @CurrentUser() user: User,
   ) {
-    return this.serviceService.create(createServiceInput);
+    return this.serviceService.create(createServiceInput, user);
   }
 
   @Query(() => [Service], { name: 'services' })
