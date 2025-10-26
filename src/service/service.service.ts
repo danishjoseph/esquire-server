@@ -165,8 +165,10 @@ export class ServiceService {
           service_log_type,
           log_description,
           service: existingService,
+          updated_by: user,
         }),
       ) || [];
+
     await this.serviceLogRepository.save(newLogs);
     // Check if the update includes a service section name
     if (service_section_name) {
@@ -242,7 +244,11 @@ export class ServiceService {
 
     const service_logs =
       input.service_logs?.map((serviceLogInput) =>
-        serviceLogRepository.create(serviceLogInput),
+        serviceLogRepository.create({
+          ...serviceLogInput,
+          created_by: user,
+          updated_by: user,
+        }),
       ) || [];
 
     const caseId = await this.generateCaseId(

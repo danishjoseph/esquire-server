@@ -11,6 +11,7 @@ import {
 import { IServiceLog } from '../dto/create-service-log.input';
 import { Service } from './service.entity';
 import { ServiceLogType } from '../enums/service-log.enum';
+import { User } from '../../user/entities/user.entity';
 
 registerEnumType(ServiceLogType, {
   name: 'ServiceLogType',
@@ -50,4 +51,14 @@ export class ServiceLog implements IServiceLog {
   @UpdateDateColumn()
   @Field()
   updated_at: Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'created_by' })
+  @Field(() => User, { nullable: true })
+  created_by: User;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'updated_by' })
+  @Field(() => User, { nullable: true })
+  updated_by: User;
 }
