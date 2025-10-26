@@ -4,6 +4,8 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   Unique,
@@ -12,6 +14,7 @@ import {
 import { registerEnumType } from '@nestjs/graphql';
 import { ProductCategory } from '../enums/product.category.enum';
 import { Purchase } from '../../purchase/entities/purchase.entity';
+import { User } from '../../user/entities/user.entity';
 
 registerEnumType(ProductCategory, {
   name: 'ProductCategory',
@@ -56,6 +59,16 @@ export class Product {
   @UpdateDateColumn()
   @Field()
   updated_at: Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'created_by' })
+  @Field(() => User, { nullable: true })
+  created_by: User;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'updated_by' })
+  @Field(() => User, { nullable: true })
+  updated_by: User;
 
   @OneToMany(() => Purchase, (purchase) => purchase.product, { cascade: true })
   @Field(() => [Purchase])

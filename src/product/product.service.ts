@@ -11,6 +11,7 @@ import {
   QueryRunner,
 } from 'typeorm';
 import { GrowthMetrics, ReportingService } from '../reports/reporting.service';
+import { User } from 'user/entities/user.entity';
 
 @Injectable()
 export class ProductService {
@@ -21,12 +22,18 @@ export class ProductService {
   ) {}
   async create(
     createProductInput: CreateProductInput,
+    user: User,
     queryRunner?: QueryRunner,
   ) {
     const productRepo = queryRunner
       ? queryRunner.manager.getRepository(Product)
       : this.productRepository;
-    return productRepo.save(createProductInput);
+    const product = productRepo.create({
+      ...createProductInput,
+      created_by: user,
+      updated_by: user,
+    });
+    return productRepo.save(product);
   }
 
   findAll(limit: number, offset: number, search?: string) {
@@ -62,12 +69,17 @@ export class ProductService {
     }
   }
 
-  async update(id: number, updateProductInput: UpdateProductInput) {
-    const existingProduct = await this.productRepository.findOneBy({ id });
+  async update(id: number, updateProductInput: UpdateProductInput, user: User) {
+    const existingProduct = await this.productRepository.findOne({
+      where: { id },
+      relations: ['updated_by'],
+    });
+
     if (!existingProduct) {
       throw new NotFoundException(`Product with ID ${id} not found.`);
     }
     this.productRepository.merge(existingProduct, updateProductInput);
+    existingProduct.updated_by = user;
     return this.productRepository.save(existingProduct);
   }
 
@@ -94,6 +106,7 @@ export class ProductService {
     input: CreateProductInput,
     productId: string,
     queryRunner: QueryRunner,
+    user: User,
   ): Promise<Product> {
     if (productId) {
       const product = await this.findOne(Number(productId), queryRunner);
@@ -107,7 +120,7 @@ export class ProductService {
         brand: input.brand,
         model_name: input.model_name,
       };
-      const createdProduct = await this.create(productData, queryRunner);
+      const createdProduct = await this.create(productData, user, queryRunner);
       this.logger.log(`Created new product with id: ${createdProduct.id}`);
       return createdProduct;
     }

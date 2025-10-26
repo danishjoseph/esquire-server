@@ -74,6 +74,7 @@ export class PurchaseService {
         input?.product as ProductInput,
         input?.product_id as string,
         queryRunner,
+        user,
       );
       const purchaseData = {
         ...input,
@@ -183,6 +184,7 @@ export class PurchaseService {
         input?.product as ProductInput,
         input?.product_id as string,
         queryRunner,
+        user,
       );
       const purchaseData = {
         ...input,
