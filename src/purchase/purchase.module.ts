@@ -7,6 +7,7 @@ import { PurchaseResolver } from './purchase.resolver';
 import { CustomerModule } from 'customer/customer.module';
 import { ProductModule } from 'product/product.module';
 import { ReportsModule } from 'reports/reports.module';
+import { AuthModule } from 'auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ReportsModule } from 'reports/reports.module';
     CustomerModule,
     ProductModule,
     ReportsModule,
+    AuthModule,
   ],
   providers: [PurchaseService, PurchaseRepository, PurchaseResolver],
   exports: [PurchaseService],

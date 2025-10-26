@@ -81,7 +81,12 @@ export class PurchaseService {
         customer,
         product,
       };
-      const createdData = await this.createPurchase(purchaseData, queryRunner);
+      const createdData = await this.createPurchase(
+        purchaseData,
+        user,
+        queryRunner,
+      );
+      await queryRunner.commitTransaction();
       return createdData;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -93,6 +98,7 @@ export class PurchaseService {
 
   async createPurchase(
     createInput: Omit<CreatePurchaseInput, 'customer_id' | 'product_id'>,
+    user: User,
     queryRunner?: QueryRunner,
   ) {
     const { purchase_status, warranty_status } = createInput;
@@ -103,11 +109,19 @@ export class PurchaseService {
     const purchaseRepo = queryRunner
       ? queryRunner.manager.getRepository(Purchase)
       : this.purchaseRepository;
-    const purchaseData = purchaseRepo.create(createInput);
+    const purchaseData = purchaseRepo.create({
+      ...createInput,
+      created_by: user,
+      updated_by: user,
+    });
     return purchaseRepo.save(purchaseData);
   }
 
-  async update(id: number, updatePurchaseInput: UpdatePurchaseInput) {
+  async update(
+    id: number,
+    updatePurchaseInput: UpdatePurchaseInput,
+    user: User,
+  ) {
     const { purchase_status, warranty_status } = updatePurchaseInput;
     if (!this.isValidWarrantyStatus(purchase_status, warranty_status)) {
       throw new Error('Invalid warranty status for the given purchase status');
@@ -115,7 +129,7 @@ export class PurchaseService {
     this.validateWarrantyStatusFields(updatePurchaseInput);
     const existingPurchase = await this.purchaseRepository.findOne({
       where: { id },
-      relations: ['product', 'customer'],
+      relations: ['product', 'customer', 'updated_by'],
     });
     if (!existingPurchase) {
       throw new NotFoundException(`Purchase with ID ${id} not found.`);
@@ -133,6 +147,7 @@ export class PurchaseService {
       throw new NotFoundException(`Product with ID ${id} not found.`);
     }
     this.purchaseRepository.merge(existingPurchase, updatePurchaseInput);
+    existingPurchase.updated_by = user;
     return this.purchaseRepository.save(existingPurchase);
   }
 
@@ -193,6 +208,7 @@ export class PurchaseService {
       };
       const createdPurchase = await this.createPurchase(
         purchaseData,
+        user,
         queryRunner,
       );
       this.logger.log(`Created new purchase with id: ${createdPurchase.id}`);

@@ -5,8 +5,12 @@ import { CreatePurchaseInput } from './dto/create-purchase.input';
 import { UpdatePurchaseInput } from './dto/update-purchase.input';
 import { CurrentUser } from 'auth/current-user.decorator';
 import { User } from 'user/entities/user.entity';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'auth/auth.guard';
+import { RolesGuard } from 'auth/roles.guard';
 
 @Resolver(() => Purchase)
+@UseGuards(AuthGuard, RolesGuard)
 export class PurchaseResolver {
   constructor(private readonly purchaseService: PurchaseService) {}
 
@@ -39,10 +43,12 @@ export class PurchaseResolver {
   @Mutation(() => Purchase)
   updatePurchase(
     @Args('updatePurchaseInput') updatePurchaseInput: UpdatePurchaseInput,
+    @CurrentUser() user: User,
   ) {
     return this.purchaseService.update(
       updatePurchaseInput.id,
       updatePurchaseInput,
+      user,
     );
   }
 }

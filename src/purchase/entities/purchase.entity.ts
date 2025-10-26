@@ -17,6 +17,7 @@ import { PurchaseStatus } from '../enums/purchase-status.enum';
 import { WarrantyStatus } from '../enums/warranty-status.enum';
 import { Service } from '../../service/entities/service.entity';
 import { IPurchase } from 'purchase/dto/create-purchase.input';
+import { User } from '../../user/entities/user.entity';
 
 registerEnumType(PurchaseStatus, {
   name: 'PurchaseStatus',
@@ -89,4 +90,14 @@ export class Purchase implements IPurchase {
   @UpdateDateColumn()
   @Field()
   updated_at: Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'created_by' })
+  @Field(() => User, { nullable: true })
+  created_by: User;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'updated_by' })
+  @Field(() => User, { nullable: true })
+  updated_by: User;
 }
