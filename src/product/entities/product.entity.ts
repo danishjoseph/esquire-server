@@ -52,6 +52,10 @@ export class Product {
   @Field({ nullable: true })
   model_name: string;
 
+  @Column({ length: 100, nullable: true })
+  @Field({ nullable: true })
+  product_warranty: string;
+
   @CreateDateColumn()
   @Field()
   created_at: Date;

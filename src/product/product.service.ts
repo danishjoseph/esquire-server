@@ -119,6 +119,7 @@ export class ProductService {
         name: input.name,
         brand: input.brand,
         model_name: input.model_name,
+        product_warranty: input.product_warranty,
       };
       const createdProduct = await this.create(productData, user, queryRunner);
       this.logger.log(`Created new product with id: ${createdProduct.id}`);

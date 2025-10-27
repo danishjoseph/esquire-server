@@ -8,6 +8,7 @@ export interface ProductInput {
   brand: string;
   model_name: string;
   serial_number: string;
+  product_warranty: string;
 }
 
 @InputType()
@@ -31,4 +32,8 @@ export class CreateProductInput implements ProductInput {
   @Field()
   @IsString()
   serial_number: string;
+
+  @Field()
+  @IsString()
+  product_warranty: string;
 }
