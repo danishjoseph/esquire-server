@@ -36,7 +36,6 @@ export class JwtVerifierService {
       const userInput = {
         sub: payload.sub,
         role: this.assignUserRole(payload),
-        email: (payload.email as string) ?? null,
       };
       const user = await this.userService.ensureUser(userInput, userInput.sub);
       return user;

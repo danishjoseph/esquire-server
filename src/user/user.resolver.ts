@@ -16,30 +16,47 @@ export class UserResolver {
 
   @Mutation(() => [User])
   @Roles(UserRole.ADMIN)
-  async createUser(@Args('input') input: CreateUserInput): Promise<User[]> {
-    return this.userService.create([input]);
+  async createUser(
+    @Args('createUserInput') createUserInput: CreateUserInput,
+  ): Promise<User[]> {
+    return this.userService.create([createUserInput]);
   }
 
   @Mutation(() => [User])
   @Roles(UserRole.ADMIN)
   async createUsers(
-    @Args('users', { type: () => CreateUsersInput })
+    @Args('createUsersInput', { type: () => CreateUsersInput })
     { users }: CreateUsersInput,
   ) {
     return this.userService.create(users);
   }
 
   @Query(() => [User], { name: 'users' })
-  findAll() {
-    return this.userService.findAll();
+  findAll(
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
+    @Args('offset', { type: () => Int, nullable: true }) offset?: number,
+    @Args('search', { type: () => String, nullable: true }) search?: string,
+  ) {
+    return this.userService.findAll(
+      limit ?? 10,
+      offset ?? 0,
+      search ?? undefined,
+    );
+  }
+
+  @Query(() => User, { name: 'user' })
+  findOne(@Args('id', { type: () => Int }) id: number) {
+    return this.userService.findOne(id);
   }
 
   @Mutation(() => User)
+  @Roles(UserRole.ADMIN)
   updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
     return this.userService.update(updateUserInput.id, updateUserInput);
   }
 
   @Mutation(() => User)
+  @Roles(UserRole.ADMIN)
   removeUser(@Args('id', { type: () => Int }) id: number) {
     return this.userService.remove(id);
   }

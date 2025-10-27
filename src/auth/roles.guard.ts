@@ -21,7 +21,7 @@ export class RolesGuard implements CanActivate {
     const ctx = GqlExecutionContext.create(context);
     const { user } = ctx.getContext().req;
 
-    const userRoles = user['cognito:groups'] || []; // Cognito stores roles here
+    const userRoles = user['role'] || []; // Cognito stores roles here
     const hasRole = requiredRoles.some((role) => userRoles.includes(role));
 
     if (!hasRole)
