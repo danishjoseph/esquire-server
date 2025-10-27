@@ -3,7 +3,9 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { UserRole } from '../enums/user-role.enum';
 
@@ -11,12 +13,14 @@ registerEnumType(UserRole, { name: 'UserRole' });
 
 @Entity('users')
 @ObjectType()
+@Unique(['sub'])
+@Index('IDX_USERS_SUB', ['sub'])
 export class User {
   @PrimaryGeneratedColumn()
   @Field(() => Int)
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   @Field()
   sub: string;
 
