@@ -19,6 +19,7 @@ import {
   PurchaseInput,
 } from '../../purchase/dto/create-purchase.input';
 import { CreateServiceLogInput, IServiceLog } from './create-service-log.input';
+import { ServiceSectionName } from 'service/enums/service-section-name.enum';
 
 export interface IService {
   status: TicketStatus;
@@ -83,6 +84,11 @@ export class CreateServiceInput implements ServiceInput {
   @Field(() => ProductCondition)
   @IsEnum(ProductCondition)
   product_condition: ProductCondition;
+
+  @Field(() => ServiceSectionName, { nullable: true })
+  @IsEnum(ServiceSectionName)
+  @IsOptional()
+  service_section: ServiceSectionName | null;
 
   // Accessories input
   @Field(() => [CreateAcessoriesInput], { nullable: true })

@@ -29,6 +29,7 @@ import { ServiceLogRepository } from './service-log.respository';
 import { Purchase } from 'purchase/entities/purchase.entity';
 import { PurchaseInput } from 'purchase/dto/create-purchase.input';
 import { User } from 'user/entities/user.entity';
+import { ServiceSection } from './entities/service-section.entity';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
   [TicketStatus.IN_PROGRESS]: [TicketStatus.QC],
@@ -239,6 +240,13 @@ export class ServiceService {
     const accessoryRepository = queryRunner.manager.getRepository(Accessory);
     const serviceLogRepository = queryRunner.manager.getRepository(ServiceLog);
     const serviceRepository = queryRunner.manager.getRepository(Service);
+    let service_section: ServiceSection | null = null;
+
+    if (input.service_section) {
+      service_section = await this.serviceSectionService.findOne(
+        input.service_section,
+      );
+    }
     const accessories =
       input.accessories?.map((accessoryInput) =>
         accessoryRepository.create({ ...accessoryInput, created_by: user }),
@@ -268,6 +276,7 @@ export class ServiceService {
       total_amount: input.total_amount,
       advance_amount: input.advance_amount,
       product_condition: input.product_condition,
+      service_section: service_section ?? {},
       accessories,
       purchase,
       service_logs,
