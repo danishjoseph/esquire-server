@@ -102,6 +102,7 @@ export class ServiceService {
         'purchase.customer',
         'accessories',
         'service_section',
+        'updated_by',
       ],
     };
 
