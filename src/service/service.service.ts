@@ -32,7 +32,7 @@ import { User } from 'user/entities/user.entity';
 import { ServiceSection } from './entities/service-section.entity';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
-  [TicketStatus.IN_PROGRESS]: [TicketStatus.QC],
+  [TicketStatus.IN_PROGRESS]: [TicketStatus.IN_PROGRESS, TicketStatus.QC],
   [TicketStatus.QC]: [TicketStatus.DELIVERY_READY],
   [TicketStatus.DELIVERY_READY]: [TicketStatus.DELIVERED],
   [TicketStatus.DELIVERED]: [TicketStatus.CLOSED],
