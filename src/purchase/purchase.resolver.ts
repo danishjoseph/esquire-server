@@ -27,11 +27,14 @@ export class PurchaseResolver {
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
     @Args('offset', { type: () => Int, nullable: true }) offset?: number,
     @Args('search', { type: () => String, nullable: true }) search?: string,
+    @Args('customerId', { type: () => Int, nullable: true })
+    customerId?: number,
   ) {
     return this.purchaseService.findAll(
       limit ?? 10,
       offset ?? 0,
       search ?? undefined,
+      customerId ?? undefined,
     );
   }
 

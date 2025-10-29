@@ -8,6 +8,7 @@ import {
   DataSource,
   EntityNotFoundError,
   FindManyOptions,
+  FindOptionsWhere,
   Like,
   QueryRunner,
 } from 'typeorm';
@@ -44,7 +45,7 @@ export class PurchaseService {
     ],
   };
 
-  findAll(limit: number, offset: number, search?: string) {
+  findAll(limit: number, offset: number, search?: string, customerId?: number) {
     const queryOptions: FindManyOptions<Purchase> = {
       skip: offset,
       take: limit,
@@ -52,8 +53,21 @@ export class PurchaseService {
       relations: ['product', 'customer'],
     };
 
+    const whereConditions: FindOptionsWhere<Purchase>[] = [];
+
     if (search) {
-      queryOptions.where = [{ invoice_number: Like(`%${search}%`) }];
+      whereConditions.push(
+        { invoice_number: Like(`%${search}%`) },
+        { product: { serial_number: Like(`%${search}%`) } },
+      );
+    }
+
+    if (customerId) {
+      whereConditions.push({ customer: { id: customerId } });
+    }
+
+    if (whereConditions.length > 0) {
+      queryOptions.where = whereConditions;
     }
     return this.purchaseRepository.find(queryOptions);
   }
