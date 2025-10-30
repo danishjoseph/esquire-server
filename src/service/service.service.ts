@@ -80,7 +80,7 @@ export class ServiceService {
     }
   }
 
-  findAll(
+  async findAll(
     limit: number,
     offset: number,
     status?: TicketStatus,
@@ -106,7 +106,10 @@ export class ServiceService {
       ],
     };
 
-    return this.serviceRepository.find(queryOptions);
+    const [services, total] =
+      await this.serviceRepository.findAndCount(queryOptions);
+
+    return { services, total };
   }
 
   async findOne(id: number) {

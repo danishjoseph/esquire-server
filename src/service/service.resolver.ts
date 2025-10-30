@@ -11,6 +11,7 @@ import { User } from 'user/entities/user.entity';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'auth/auth.guard';
 import { RolesGuard } from 'auth/roles.guard';
+import { ServiceList } from './dto/service-list';
 
 @Resolver(() => Service)
 @UseGuards(AuthGuard, RolesGuard)
@@ -25,7 +26,7 @@ export class ServiceResolver {
     return this.serviceService.create(createServiceInput, user);
   }
 
-  @Query(() => [Service], { name: 'services' })
+  @Query(() => ServiceList, { name: 'services' })
   findAll(
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
     @Args('offset', { type: () => Int, nullable: true }) offset?: number,
