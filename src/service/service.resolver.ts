@@ -12,6 +12,7 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'auth/auth.guard';
 import { RolesGuard } from 'auth/roles.guard';
 import { ServiceList } from './dto/service-list';
+import { ServiceSectionName } from './enums/service-section-name.enum';
 
 @Resolver(() => Service)
 @UseGuards(AuthGuard, RolesGuard)
@@ -30,6 +31,8 @@ export class ServiceResolver {
   findAll(
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
     @Args('offset', { type: () => Int, nullable: true }) offset?: number,
+    @Args('sections', { type: () => [ServiceSectionName], nullable: true })
+    sections?: ServiceSectionName[],
     @Args('status', { type: () => TicketStatus, nullable: true })
     status?: TicketStatus,
     @Args('search', { type: () => String, nullable: true }) search?: string,
@@ -37,6 +40,7 @@ export class ServiceResolver {
     return this.serviceService.findAll(
       limit ?? 10,
       offset ?? 0,
+      sections ?? [],
       status ?? TicketStatus.IN_PROGRESS,
       search ?? undefined,
     );
@@ -72,5 +76,15 @@ export class ServiceResolver {
   @Query(() => ServiceMetrics, { name: 'serviceMetrics' })
   serviceStatistics(): Promise<GrowthMetrics> {
     return this.serviceService.findMetrics();
+  }
+
+  @Query(() => [ServiceSectionName], {
+    name: 'usedServiceSectionNames',
+    description: 'Get all unique service section names',
+  })
+  async getUsedServiceSectionNames(
+    @Args('status', { type: () => TicketStatus }) status: TicketStatus,
+  ): Promise<ServiceSectionName[]> {
+    return this.serviceService.getUsedServiceSections(status);
   }
 }

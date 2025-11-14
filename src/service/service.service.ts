@@ -12,7 +12,10 @@ import {
   DeleteResult,
   EntityManager,
   FindManyOptions,
+  In,
+  IsNull,
   Like,
+  Not,
 } from 'typeorm';
 import { Service } from './entities/service.entity';
 import { Accessory } from './entities/accessories.entity';
@@ -30,6 +33,7 @@ import { Purchase } from 'purchase/entities/purchase.entity';
 import { PurchaseInput } from 'purchase/dto/create-purchase.input';
 import { User } from 'user/entities/user.entity';
 import { ServiceSection } from './entities/service-section.entity';
+import { ServiceSectionName } from './enums/service-section-name.enum';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
   [TicketStatus.IN_PROGRESS]: [TicketStatus.IN_PROGRESS, TicketStatus.QC],
@@ -83,12 +87,16 @@ export class ServiceService {
   async findAll(
     limit: number,
     offset: number,
+    sections: ServiceSectionName[] = [],
     status?: TicketStatus,
     search?: string,
   ) {
     const conditions: any = {
       ...(search ? { case_id: Like(`%${search}%`) } : {}),
       ...(status != null ? { status: status } : {}),
+      ...(sections.length > 0
+        ? { service_section: { service_section_name: In(sections) } }
+        : {}),
     };
 
     const queryOptions: FindManyOptions<Service> = {
@@ -143,6 +151,34 @@ export class ServiceService {
         `An unexpected error occurred while retrieving the service with ID ${id}.`,
       );
     }
+  }
+
+  async getUsedServiceSections(
+    status: TicketStatus,
+  ): Promise<ServiceSectionName[]> {
+    const servicesWithSections = await this.serviceRepository.find({
+      select: {
+        service_section: {
+          id: true,
+          service_section_name: true,
+        },
+      },
+      where: {
+        service_section: Not(IsNull()),
+        status: status, // Add status filter condition
+      },
+      relations: ['service_section'],
+    });
+
+    const uniqueSectionNames = new Set<
+      ServiceSection['service_section_name']
+    >();
+    for (const service of servicesWithSections) {
+      const sectionName = service.service_section.service_section_name;
+      uniqueSectionNames.add(sectionName);
+    }
+
+    return Array.from(uniqueSectionNames);
   }
 
   async update(id: number, updateServiceInput: UpdateServiceInput, user: User) {
