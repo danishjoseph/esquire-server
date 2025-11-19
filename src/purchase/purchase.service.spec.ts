@@ -7,6 +7,29 @@ import { PurchaseStatus } from './enums/purchase-status.enum';
 import { UpdatePurchaseInput } from './dto/update-purchase.input';
 import { ProductService } from '../product/product.service';
 import { CustomerService } from '../customer/customer.service';
+import { DataSource } from 'typeorm';
+import { Customer } from '../customer/entities/customer.entity';
+import { Product } from '../product/entities/product.entity';
+import { User } from '../user/entities/user.entity';
+import { UserRole } from '../user/enums/user-role.enum';
+import { Purchase } from './entities/purchase.entity';
+
+const mockQueryRunner = {
+  connect: jest.fn(),
+  startTransaction: jest.fn(),
+  commitTransaction: jest.fn(),
+  rollbackTransaction: jest.fn(),
+  release: jest.fn(),
+  manager: {
+    getRepository: jest.fn(),
+  },
+};
+
+const foeUser: User = {
+  id: 1,
+  sub: 'user-sub',
+  role: UserRole.FOE,
+} as User;
 
 describe('PurchaseService', () => {
   let service: PurchaseService;
@@ -20,18 +43,31 @@ describe('PurchaseService', () => {
 
   const mockProductService = {
     findOne: jest.fn(),
+    ensureProduct: jest.fn(),
   };
+
+  mockQueryRunner.manager.getRepository = jest.fn((entity) => {
+    if (entity === Product) return mockProductService;
+    if (entity === Customer) return mockCustomerService;
+    if (entity === Purchase) return mockPurchaseRepository;
+  });
 
   beforeEach(async () => {
     mockPurchaseRepository = {
       create: jest.fn(),
       save: jest.fn(),
-      findOneBy: jest.fn(),
+      findOne: jest.fn(),
       merge: jest.fn(),
     };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PurchaseService,
+        {
+          provide: DataSource,
+          useValue: {
+            createQueryRunner: jest.fn().mockReturnValue(mockQueryRunner),
+          },
+        },
         { provide: PurchaseRepository, useValue: mockPurchaseRepository },
         { provide: ProductService, useValue: mockProductService },
         { provide: CustomerService, useValue: mockCustomerService },
@@ -160,6 +196,7 @@ describe('PurchaseService', () => {
   it('should create the purchase status', async () => {
     const input = {
       product_id: 'mockId',
+      customer_id: 'mockId',
       purchase_status: PurchaseStatus.NON_ESQUIRE,
       warranty_status: WarrantyStatus.NON_WARRANTY,
     } as CreatePurchaseInput;
@@ -169,7 +206,7 @@ describe('PurchaseService', () => {
     mockCustomerService.findOne?.mockReturnValueOnce({
       id: input.customer_id,
     });
-    await service.create(input);
+    await service.create(input, foeUser);
     expect(mockPurchaseRepository.create).toHaveBeenCalled();
     expect(mockPurchaseRepository.save).toHaveBeenCalled();
   });
@@ -184,10 +221,10 @@ describe('PurchaseService', () => {
     mockProductService.findOne?.mockReturnValueOnce({
       id: input.product_id,
     });
-    mockPurchaseRepository.findOneBy?.mockReturnValueOnce({
+    mockPurchaseRepository.findOne?.mockReturnValueOnce({
       id: input.id,
     });
-    await service.update(input.id, input);
+    await service.update(input.id, input, foeUser);
     expect(mockPurchaseRepository.merge).toHaveBeenCalled();
     expect(mockPurchaseRepository.save).toHaveBeenCalled();
   });
