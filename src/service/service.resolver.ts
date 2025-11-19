@@ -13,6 +13,7 @@ import { AuthGuard } from 'auth/auth.guard';
 import { RolesGuard } from 'auth/roles.guard';
 import { ServiceList } from './dto/service-list';
 import { ServiceSectionName } from './enums/service-section-name.enum';
+import { ServiceSectionCount } from './dto/service-section-count';
 
 @Resolver(() => Service)
 @UseGuards(AuthGuard, RolesGuard)
@@ -78,13 +79,13 @@ export class ServiceResolver {
     return this.serviceService.findMetrics();
   }
 
-  @Query(() => [ServiceSectionName], {
+  @Query(() => [ServiceSectionCount], {
     name: 'usedServiceSectionNames',
     description: 'Get all unique service section names',
   })
   async getUsedServiceSectionNames(
     @Args('status', { type: () => TicketStatus }) status: TicketStatus,
-  ): Promise<ServiceSectionName[]> {
+  ): Promise<{ sectionName: ServiceSectionName; count: number }[]> {
     return this.serviceService.getUsedServiceSections(status);
   }
 }

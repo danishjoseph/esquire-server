@@ -155,30 +155,20 @@ export class ServiceService {
 
   async getUsedServiceSections(
     status: TicketStatus,
-  ): Promise<ServiceSectionName[]> {
-    const servicesWithSections = await this.serviceRepository.find({
-      select: {
-        service_section: {
-          id: true,
-          service_section_name: true,
-        },
-      },
-      where: {
-        service_section: Not(IsNull()),
-        status: status, // Add status filter condition
-      },
-      relations: ['service_section'],
-    });
+  ): Promise<{ sectionName: ServiceSectionName; count: number }[]> {
+    const result = await this.serviceRepository
+      .createQueryBuilder('service')
+      .select('service_section.service_section_name', 'sectionName')
+      .addSelect('COUNT(service.id)', 'count')
+      .innerJoin('service.service_section', 'service_section')
+      .where('service.status = :status', { status })
+      .groupBy('service_section.service_section_name')
+      .getRawMany();
 
-    const uniqueSectionNames = new Set<
-      ServiceSection['service_section_name']
-    >();
-    for (const service of servicesWithSections) {
-      const sectionName = service.service_section.service_section_name;
-      uniqueSectionNames.add(sectionName);
-    }
-
-    return Array.from(uniqueSectionNames);
+    return result.map((row) => ({
+      sectionName: row.sectionName,
+      count: parseInt(row.count, 10),
+    }));
   }
 
   async update(id: number, updateServiceInput: UpdateServiceInput, user: User) {

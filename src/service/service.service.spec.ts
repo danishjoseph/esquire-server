@@ -14,6 +14,8 @@ import { ServiceSectionService } from './service-section.service';
 import { ServiceSection } from './entities/service-section.entity';
 import { ServiceLogRepository } from './service-log.respository';
 import { ReportingService } from '../reports/reporting.service';
+import { User } from '../user/entities/user.entity';
+import { UserRole } from '../user/enums/user-role.enum';
 
 const mockQueryRunner = {
   connect: jest.fn(),
@@ -25,6 +27,12 @@ const mockQueryRunner = {
     getRepository: jest.fn(),
   },
 };
+
+const foeUser: User = {
+  id: 1,
+  sub: 'user-sub',
+  role: UserRole.FOE,
+} as User;
 
 describe('ServiceService', () => {
   let service: ServiceService;
@@ -129,12 +137,15 @@ describe('ServiceService', () => {
     });
 
     // Call the create method and execute
-    const result = await service.create({
-      customerId: '1',
-      accessories: [
-        { accessory_name: 'Test Accessory', accessory_received: true },
-      ],
-    } as unknown as CreateServiceInput);
+    const result = await service.create(
+      {
+        customerId: '1',
+        accessories: [
+          { accessory_name: 'Test Accessory', accessory_received: true },
+        ],
+      } as unknown as CreateServiceInput,
+      foeUser,
+    );
 
     expect(result).toEqual({ id: 1, status: TicketStatus.IN_PROGRESS });
     expect(purchaseService.ensurePurchase).toHaveBeenCalled();
