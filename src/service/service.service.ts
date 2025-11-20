@@ -13,9 +13,7 @@ import {
   EntityManager,
   FindManyOptions,
   In,
-  IsNull,
   Like,
-  Not,
 } from 'typeorm';
 import { Service } from './entities/service.entity';
 import { Accessory } from './entities/accessories.entity';
@@ -34,6 +32,7 @@ import { PurchaseInput } from 'purchase/dto/create-purchase.input';
 import { User } from 'user/entities/user.entity';
 import { ServiceSection } from './entities/service-section.entity';
 import { ServiceSectionName } from './enums/service-section-name.enum';
+import { UserRole } from 'user/enums/user-role.enum';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
   [TicketStatus.IN_PROGRESS]: [TicketStatus.IN_PROGRESS, TicketStatus.QC],
@@ -60,6 +59,8 @@ export class ServiceService {
     await queryRunner.connect();
 
     try {
+      input.service_type =
+        user.role === UserRole.FOE ? ServiceType.INHOUSE : ServiceType.OUTDOOR;
       await queryRunner.startTransaction();
       const purchase = await this.purchaseService.ensurePurchase(
         input?.purchase as PurchaseInput,
