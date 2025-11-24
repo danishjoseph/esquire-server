@@ -37,6 +37,8 @@ export class ServiceResolver {
     sections?: ServiceSectionName[],
     @Args('status', { type: () => TicketStatus, nullable: true })
     status?: TicketStatus,
+    @Args('service_type', { type: () => [ServiceType], nullable: true })
+    serviceType?: ServiceType[],
     @Args('search', { type: () => String, nullable: true }) search?: string,
   ) {
     return this.serviceService.findAll(
@@ -44,6 +46,7 @@ export class ServiceResolver {
       offset ?? 0,
       sections ?? [],
       status ?? TicketStatus.IN_PROGRESS,
+      serviceType ?? [],
       search ?? undefined,
     );
   }

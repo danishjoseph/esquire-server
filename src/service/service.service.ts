@@ -88,6 +88,7 @@ export class ServiceService {
     offset: number,
     sections: ServiceSectionName[] = [],
     status?: TicketStatus,
+    serviceType: ServiceType[] = [],
     search?: string,
   ) {
     const conditions: any = {
@@ -96,6 +97,7 @@ export class ServiceService {
       ...(sections.length > 0
         ? { service_section: { service_section_name: In(sections) } }
         : {}),
+      ...(serviceType.length > 0 ? { service_type: In(serviceType) } : {}),
     };
 
     const queryOptions: FindManyOptions<Service> = {
