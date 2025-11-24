@@ -13,9 +13,7 @@ import {
   EntityManager,
   FindManyOptions,
   In,
-  IsNull,
   Like,
-  Not,
 } from 'typeorm';
 import { Service } from './entities/service.entity';
 import { Accessory } from './entities/accessories.entity';
@@ -34,6 +32,7 @@ import { PurchaseInput } from 'purchase/dto/create-purchase.input';
 import { User } from 'user/entities/user.entity';
 import { ServiceSection } from './entities/service-section.entity';
 import { ServiceSectionName } from './enums/service-section-name.enum';
+import { FilterOption } from './dto/ticket-filters';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
   [TicketStatus.IN_PROGRESS]: [TicketStatus.IN_PROGRESS, TicketStatus.QC],
@@ -153,20 +152,32 @@ export class ServiceService {
     }
   }
 
-  async getUsedServiceSections(
+  async getFilterOptionsByAttribute<TEnum>(
     status: TicketStatus,
-  ): Promise<{ sectionName: ServiceSectionName; count: number }[]> {
+    attribute: 'service_section' | 'service_type',
+  ): Promise<FilterOption<TEnum>[]> {
+    const fieldMapping = {
+      service_section: 'service_section.service_section_name',
+      service_type: 'service.service_type',
+    };
+
+    const fieldName = fieldMapping[attribute];
+
+    if (!fieldName) {
+      throw new Error(`Unsupported attribute for filtering: ${attribute}`);
+    }
+
     const result = await this.serviceRepository
       .createQueryBuilder('service')
-      .select('service_section.service_section_name', 'sectionName')
+      .select(`${fieldName}`, 'name')
       .addSelect('COUNT(service.id)', 'count')
-      .innerJoin('service.service_section', 'service_section')
+      .innerJoin('service.service_section', 'service_section') // Adjust inner join if service_type requires different association
       .where('service.status = :status', { status })
-      .groupBy('service_section.service_section_name')
+      .groupBy(`${fieldName}`)
       .getRawMany();
 
     return result.map((row) => ({
-      sectionName: row.sectionName,
+      name: row.name as TEnum,
       count: parseInt(row.count, 10),
     }));
   }
