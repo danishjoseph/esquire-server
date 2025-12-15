@@ -126,4 +126,29 @@ export class ProductService {
       return createdProduct;
     }
   }
+
+  async findOneBySerialNumber(
+    serial_number: string,
+    queryRunner?: QueryRunner,
+  ) {
+    const productRepo = queryRunner
+      ? queryRunner.manager.getRepository(Product)
+      : this.productRepository;
+    try {
+      return productRepo.findOneByOrFail({ serial_number });
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException(
+          `Product with serial number ${serial_number} not found.`,
+        );
+      }
+      this.logger.error(
+        `Unexpected error when finding product with serial number ${serial_number}: ${error.message}`,
+        error.stack,
+      );
+      throw new Error(
+        `An unexpected error occurred while retrieving the product with serial number ${serial_number}.`,
+      );
+    }
+  }
 }

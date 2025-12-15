@@ -135,4 +135,26 @@ export class CustomerService {
       return createdCustomer;
     }
   }
+
+  async findOneByMobile(mobile: string, queryRunner?: QueryRunner) {
+    const customerRepo = queryRunner
+      ? queryRunner.manager.getRepository(Customer)
+      : this.customerRepository;
+    try {
+      return customerRepo.findOneByOrFail({ mobile });
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException(
+          `Customer with mobile ${mobile} not found.`,
+        );
+      }
+      this.logger.error(
+        `Unexpected error when finding customer with mobile ${mobile}: ${error.message}`,
+        error.stack,
+      );
+      throw new Error(
+        `An unexpected error occurred while retrieving the customer with ID ${mobile}.`,
+      );
+    }
+  }
 }

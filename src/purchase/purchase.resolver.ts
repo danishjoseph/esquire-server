@@ -8,6 +8,8 @@ import { User } from 'user/entities/user.entity';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'auth/auth.guard';
 import { RolesGuard } from 'auth/roles.guard';
+import type { FileUpload } from 'graphql-upload-minimal';
+import { GraphQLUpload } from 'graphql-upload-minimal';
 
 @Resolver(() => Purchase)
 @UseGuards(AuthGuard, RolesGuard)
@@ -53,5 +55,14 @@ export class PurchaseResolver {
       updatePurchaseInput,
       user,
     );
+  }
+
+  @Mutation(() => Boolean)
+  async import(
+    @Args({ name: 'file', type: () => GraphQLUpload })
+    file: FileUpload,
+    @CurrentUser() user: User,
+  ) {
+    return this.purchaseService.import(file, user);
   }
 }

@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { PurchaseRepository } from './purchase.respository';
 import { CreatePurchaseInput } from './dto/create-purchase.input';
 import { PurchaseStatus } from './enums/purchase-status.enum';
@@ -15,9 +20,20 @@ import {
 import { Purchase } from './entities/purchase.entity';
 import { ProductService } from '../product/product.service';
 import { CustomerService } from '../customer/customer.service';
-import { CustomerInput } from '../customer/dto/create-customer.input';
-import { ProductInput } from '../product/dto/create-product.input';
+import {
+  CreateCustomerInput,
+  CustomerInput,
+} from '../customer/dto/create-customer.input';
+import {
+  CreateProductInput,
+  ProductInput,
+} from '../product/dto/create-product.input';
 import { User } from 'user/entities/user.entity';
+import { FileUpload } from 'graphql-upload-minimal';
+import csv from 'csv-parser';
+import { ImportPurchaseInput } from './dto/import-purchase.input';
+import { plainToClass } from 'class-transformer';
+import { validate } from 'class-validator';
 
 @Injectable()
 export class PurchaseService {
@@ -227,6 +243,137 @@ export class PurchaseService {
       );
       this.logger.log(`Created new purchase with id: ${createdPurchase.id}`);
       return createdPurchase;
+    }
+  }
+
+  async import(file: FileUpload, user: User): Promise<boolean> {
+    const stream = file.createReadStream();
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    const BATCH_SIZE = 200; // recommended
+    let batch: any[] = [];
+    let rowCount = 0;
+
+    return new Promise((resolve, reject) => {
+      stream
+        .pipe(csv())
+        .on('data', async (row) => {
+          stream.pause(); // prevent overflow while processing row
+
+          try {
+            batch.push(row);
+            rowCount++;
+
+            if (batch.length >= BATCH_SIZE) {
+              await this.processBatch(batch, queryRunner, user);
+              batch = [];
+            }
+
+            stream.resume();
+          } catch (err) {
+            reject(err);
+          }
+        })
+        .on('end', async () => {
+          try {
+            if (batch.length > 0) {
+              await this.processBatch(batch, queryRunner, user);
+            }
+
+            await queryRunner.commitTransaction();
+            await queryRunner.release();
+            resolve(true);
+          } catch (err) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            reject(err);
+          }
+        })
+        .on('error', async (err) => {
+          await queryRunner.rollbackTransaction();
+          await queryRunner.release();
+          reject(err);
+        });
+    });
+  }
+
+  private async processBatch(
+    rows: ImportPurchaseInput[],
+    queryRunner: QueryRunner,
+    user: User,
+  ) {
+    for (const r of rows) {
+      const input = plainToClass(CreatePurchaseInput, {
+        purchase_status: r.purchase_status,
+        warranty_status: r.warranty_status,
+        invoice_number: r.invoice_number,
+        purchase_date: r.purchase_date ? new Date(r.purchase_date) : undefined,
+        warranty_expiry: r.warranty_expiry
+          ? new Date(r.warranty_expiry)
+          : undefined,
+        asc_start_date: r.asc_start_date
+          ? new Date(r.asc_start_date)
+          : undefined,
+        asc_expiry_date: r.asc_expiry_date
+          ? new Date(r.asc_expiry_date)
+          : undefined,
+      });
+
+      const existingCustomer = await this.customerService.findOneByMobile(
+        r.customer_phone,
+        queryRunner,
+      );
+      if (existingCustomer) {
+        input.customer_id = existingCustomer.id.toString();
+      } else {
+        input.customer = plainToClass(CreateCustomerInput, {
+          name: r.customer_name,
+          mobile: r.customer_phone,
+          alt_mobile: r.customer_alt_mobile ?? null,
+          email: r.customer_email ?? null,
+          address: r.customer_address ?? null,
+          house_office: r.customer_house_office ?? null,
+          street_building: r.customer_street_building ?? null,
+          area: r.customer_area ?? null,
+          pincode: r.customer_pincode ?? null,
+          district: r.customer_district ?? null,
+        });
+      }
+
+      const existingProduct = await this.productService.findOneBySerialNumber(
+        r.product_serial_number,
+        queryRunner,
+      );
+      if (existingProduct) {
+        input.product_id = existingProduct.id.toString();
+      } else {
+        input.product = plainToClass(CreateProductInput, {
+          name: r.product_name,
+          category: r.product_category,
+          brand: r.product_brand,
+          model_name: r.product_model,
+          serial_number: r.product_serial_number,
+          product_warranty: r.product_warranty,
+        });
+      }
+
+      const errors = await validate(input);
+      if (errors.length > 0) {
+        throw new BadRequestException(errors);
+      }
+      const existingPurchase = await this.purchaseRepository.findOne({
+        where: { invoice_number: input.invoice_number },
+        // relations: ['product', 'customer', 'updated_by'],
+      });
+
+      if (existingPurchase) {
+        continue;
+      } else {
+        await this.createPurchase(input, user, queryRunner);
+      }
     }
   }
 
