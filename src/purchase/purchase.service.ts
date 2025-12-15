@@ -255,7 +255,7 @@ export class PurchaseService {
 
     const BATCH_SIZE = 200; // recommended
     let batch: any[] = [];
-    let rowCount = 0;
+    // let rowCount = 0;
 
     return new Promise((resolve, reject) => {
       stream
@@ -265,7 +265,7 @@ export class PurchaseService {
 
           try {
             batch.push(row);
-            rowCount++;
+            // rowCount++;
 
             if (batch.length >= BATCH_SIZE) {
               await this.processBatch(batch, queryRunner, user);
