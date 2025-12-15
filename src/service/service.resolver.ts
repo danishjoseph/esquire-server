@@ -15,6 +15,7 @@ import { ServiceList } from './dto/service-list';
 import { ServiceSectionName } from './enums/service-section-name.enum';
 import { TicketFilters } from './dto/ticket-filters';
 import { ServiceType } from './enums/service-type.enum';
+import { UpdateServiceChargeInput } from './dto/update-service-charge.input';
 
 @Resolver(() => Service)
 @UseGuards(AuthGuard, RolesGuard)
@@ -103,5 +104,18 @@ export class ServiceResolver {
       );
 
     return { serviceSections, serviceTypes };
+  }
+
+  @Mutation(() => Service)
+  updateServiceCharge(
+    @Args('updateServiceChargeInput')
+    updateServiceChargeInput: UpdateServiceChargeInput,
+    @CurrentUser() user: User,
+  ) {
+    return this.serviceService.updateServiceCharge(
+      updateServiceChargeInput.id,
+      updateServiceChargeInput,
+      user,
+    );
   }
 }

@@ -33,6 +33,7 @@ import { User } from 'user/entities/user.entity';
 import { ServiceSection } from './entities/service-section.entity';
 import { ServiceSectionName } from './enums/service-section-name.enum';
 import { FilterOption } from './dto/ticket-filters';
+import { UpdateServiceChargeInput } from './dto/update-service-charge.input';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
   [TicketStatus.IN_PROGRESS]: [TicketStatus.IN_PROGRESS, TicketStatus.QC],
@@ -239,6 +240,24 @@ export class ServiceService {
     return this.serviceRepository.save(existingService);
   }
 
+  async updateServiceCharge(
+    id: number,
+    updateServiceChargeInput: UpdateServiceChargeInput,
+    user: User,
+  ) {
+    const existingService = await this.serviceRepository.findOne({
+      where: { id },
+      relations: ['updated_by'],
+    });
+    if (!existingService) {
+      throw new NotFoundException(`Service with ID ${id} not found.`);
+    }
+    this.validateServiceChargeCalculations(updateServiceChargeInput);
+    existingService.updated_by = user;
+    Object.assign(existingService, updateServiceChargeInput);
+    return this.serviceRepository.save(existingService);
+  }
+
   async remove(id: number) {
     const deleteResult: DeleteResult = await this.serviceRepository.delete(id);
     return deleteResult && deleteResult.affected && deleteResult.affected > 0;
@@ -272,6 +291,34 @@ export class ServiceService {
       currentMonthCount,
       monthlyGrowth,
     };
+  }
+
+  validateServiceChargeCalculations(input: UpdateServiceChargeInput): void {
+    const {
+      quotation_amount,
+      service_charge,
+      gst_amount,
+      total_amount,
+      advance_amount,
+    } = input;
+
+    const quotationAmount = parseFloat(quotation_amount.toString()) || 0;
+    const serviceCharge = parseFloat(service_charge.toString()) || 0;
+    const advanceAmount = parseFloat(advance_amount.toString()) || 0;
+
+    const effectiveAmount = serviceCharge > 0 ? serviceCharge : quotationAmount;
+    const calculatedGstAmount = effectiveAmount * 0.18;
+    const calculatedTotalAmount =
+      effectiveAmount + calculatedGstAmount - advanceAmount;
+
+    if (
+      gst_amount.toFixed(2) !== calculatedGstAmount.toFixed(2) ||
+      total_amount.toFixed(2) !== Math.max(calculatedTotalAmount, 0).toFixed(2)
+    ) {
+      throw new Error(
+        'Calculated GST or total amount does not match the input values.',
+      );
+    }
   }
 
   private async createService(
