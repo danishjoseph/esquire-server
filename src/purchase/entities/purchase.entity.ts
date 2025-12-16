@@ -3,12 +3,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
@@ -29,8 +27,6 @@ registerEnumType(WarrantyStatus, {
 
 @Entity('purchases')
 @ObjectType()
-@Unique(['invoice_number'])
-@Index('IDX_PURCHASE_INVOICE_NUMBER', ['invoice_number'])
 export class Purchase implements IPurchase {
   @PrimaryGeneratedColumn()
   @Field()

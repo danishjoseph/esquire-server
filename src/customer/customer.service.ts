@@ -141,13 +141,8 @@ export class CustomerService {
       ? queryRunner.manager.getRepository(Customer)
       : this.customerRepository;
     try {
-      return customerRepo.findOneByOrFail({ mobile });
+      return customerRepo.findOneBy({ mobile });
     } catch (error) {
-      if (error instanceof EntityNotFoundError) {
-        throw new NotFoundException(
-          `Customer with mobile ${mobile} not found.`,
-        );
-      }
       this.logger.error(
         `Unexpected error when finding customer with mobile ${mobile}: ${error.message}`,
         error.stack,

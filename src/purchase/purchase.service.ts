@@ -354,7 +354,7 @@ export class PurchaseService {
           name: r.product_name,
           category: r.product_category,
           brand: r.product_brand,
-          model_name: r.product_model,
+          model_name: r.product_model_name,
           serial_number: r.product_serial_number,
           product_warranty: r.product_warranty,
         });
@@ -364,16 +364,7 @@ export class PurchaseService {
       if (errors.length > 0) {
         throw new BadRequestException(errors);
       }
-      const existingPurchase = await this.purchaseRepository.findOne({
-        where: { invoice_number: input.invoice_number },
-        // relations: ['product', 'customer', 'updated_by'],
-      });
-
-      if (existingPurchase) {
-        continue;
-      } else {
-        await this.createPurchase(input, user, queryRunner);
-      }
+      await this.ensurePurchase(input, '', queryRunner, user);
     }
   }
 
