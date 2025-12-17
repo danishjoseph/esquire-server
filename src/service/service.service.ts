@@ -36,6 +36,7 @@ import { FilterOption } from './dto/ticket-filters';
 import { UpdateServiceChargeInput } from './dto/update-service-charge.input';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
+  [TicketStatus.HOLD]: [TicketStatus.IN_PROGRESS],
   [TicketStatus.IN_PROGRESS]: [TicketStatus.IN_PROGRESS, TicketStatus.QC],
   [TicketStatus.QC]: [TicketStatus.DELIVERY_READY],
   [TicketStatus.DELIVERY_READY]: [TicketStatus.DELIVERED],

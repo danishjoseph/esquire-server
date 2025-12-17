@@ -1,4 +1,5 @@
 export enum TicketStatus {
+  HOLD = 'HOLD',
   IN_PROGRESS = 'IN_PROGRESS',
   QC = 'QC',
   DELIVERY_READY = 'DELIVERY_READY',
