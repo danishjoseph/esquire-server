@@ -34,6 +34,8 @@ import csv from 'csv-parser';
 import { ImportPurchaseInput } from './dto/import-purchase.input';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
+import { Customer } from 'customer/entities/customer.entity';
+import { Product } from 'product/entities/product.entity';
 
 @Injectable()
 export class PurchaseService {
@@ -152,6 +154,7 @@ export class PurchaseService {
     updatePurchaseInput: UpdatePurchaseInput,
     user: User,
   ) {
+    console.log('updatePurchaseInpu', updatePurchaseInput);
     const { purchase_status, warranty_status } = updatePurchaseInput;
     if (!this.isValidWarrantyStatus(purchase_status, warranty_status)) {
       throw new Error('Invalid warranty status for the given purchase status');
@@ -176,7 +179,21 @@ export class PurchaseService {
     if (!existingProduct) {
       throw new NotFoundException(`Product with ID ${id} not found.`);
     }
-    this.purchaseRepository.merge(existingPurchase, updatePurchaseInput);
+    if (updatePurchaseInput.product) {
+      await this.productService.update(
+        existingProduct.id,
+        updatePurchaseInput.product as Product,
+        user,
+      );
+    }
+
+    if (updatePurchaseInput.customer) {
+      await this.customerService.update(
+        existingCustomer.id,
+        updatePurchaseInput.customer as Customer,
+        user,
+      );
+    }
     existingPurchase.updated_by = user;
     return this.purchaseRepository.save(existingPurchase);
   }
