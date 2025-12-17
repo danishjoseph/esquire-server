@@ -267,7 +267,7 @@ export class ServiceService {
   async statistics() {
     const total = await this.serviceRepository.count();
     const pending = await this.serviceRepository.countBy({
-      status: TicketStatus.IN_PROGRESS,
+      status: TicketStatus.HOLD,
     });
     const solved = await this.serviceRepository.countBy({
       status: TicketStatus.CLOSED,
