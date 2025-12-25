@@ -8,7 +8,6 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { registerEnumType } from '@nestjs/graphql';
@@ -22,7 +21,6 @@ registerEnumType(ProductCategory, {
 
 @Entity('products')
 @ObjectType()
-@Unique(['serial_number'])
 @Index('IDX_PRODUCT_SERIAL_NUMBER', ['serial_number'])
 export class Product {
   @PrimaryGeneratedColumn()

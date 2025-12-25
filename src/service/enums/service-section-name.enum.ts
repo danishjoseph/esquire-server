@@ -6,4 +6,5 @@ export enum ServiceSectionName {
   IPG = 'IPG',
   VENDOR_ASP = 'VENDOR_ASP',
   OUTSOURCE = 'OUTSOURCE',
+  OUTDOOR = 'OUTDOOR',
 }
