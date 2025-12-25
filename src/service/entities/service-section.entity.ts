@@ -23,5 +23,6 @@ export class ServiceSection implements IServiceSection {
   service_section_name: ServiceSectionName;
 
   @OneToMany(() => Service, (service) => service.service_section)
+  @Field(() => [Service])
   services: Service[];
 }

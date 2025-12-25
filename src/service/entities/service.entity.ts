@@ -39,6 +39,7 @@ registerEnumType(ServiceType, {
 
 @ObjectType()
 @Entity('services')
+@Index('IDX_SERVICE_CASE_ID', ['case_id'])
 export class Service implements IService {
   @PrimaryGeneratedColumn()
   @Field()
@@ -96,8 +97,7 @@ export class Service implements IService {
   @Field(() => ServiceStatus, { nullable: true })
   service_status: ServiceStatus;
 
-  @Index('IDX_SERVICE_CASE_ID', { unique: true })
-  @Column({ length: 20 })
+  @Column({ length: 20, unique: true })
   @Field()
   case_id: string;
 
