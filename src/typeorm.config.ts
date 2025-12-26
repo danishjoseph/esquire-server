@@ -11,6 +11,7 @@ import { ServiceSection } from '../src/service/entities/service-section.entity';
 import { Customer } from '../src/customer/entities/customer.entity';
 import { AddEntities1766657650243 } from '../migrations/1766657650243-add-entities';
 import { InsertServiceSectionNames1766657650350 } from '../migrations/1766657650350-insert-service-section-names';
+import { UpdateServiceEntity1766672604822 } from '../migrations/1766672604822-update-service-entity';
 
 config();
 const configService = new ConfigService();
@@ -35,6 +36,7 @@ const dataSourceOptions: DataSourceOptions = {
   migrations: [
     AddEntities1766657650243,
     InsertServiceSectionNames1766657650350,
+    UpdateServiceEntity1766672604822,
   ],
   migrationsRun: true,
   synchronize: false,

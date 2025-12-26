@@ -14,7 +14,8 @@ export class InsertServiceSectionNames1766657650350 implements MigrationInterfac
            ('IPG'),
            ('VENDOR_ASP'),
            ('OUTSOURCE'),
-           ('OUTDOOR');
+           ('OUTDOOR'),
+           ('HOLD');
        `);
     }
 
@@ -29,7 +30,8 @@ export class InsertServiceSectionNames1766657650350 implements MigrationInterfac
                'IPG',
                'VENDOR_ASP',
                'OUTSOURCE',
-               'OUTDOOR'
+               'OUTDOOR',
+               'HOLD'
            );
        `);
     }

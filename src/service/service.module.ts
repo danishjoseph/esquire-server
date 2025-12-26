@@ -12,6 +12,7 @@ import { ReportsModule } from '../reports/reports.module';
 import { ServiceLogRepository } from './service-log.respository';
 import { PurchaseModule } from 'purchase/purchase.module';
 import { AuthModule } from 'auth/auth.module';
+import { UserModule } from 'user/user.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AuthModule } from 'auth/auth.module';
     ReportsModule,
     PurchaseModule,
     AuthModule,
+    UserModule,
   ],
   providers: [
     ServiceRepository,

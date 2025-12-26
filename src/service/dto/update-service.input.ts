@@ -26,6 +26,10 @@ export class UpdateServiceInput {
   @IsOptional()
   service_section_name?: ServiceSectionName;
 
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  assigned_user?: string;
+
   @Field(() => [CreateServiceLogInput])
   @IsArray()
   @ValidateNested({ each: true })

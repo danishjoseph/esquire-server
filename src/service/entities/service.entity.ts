@@ -75,6 +75,11 @@ export class Service implements IService {
   })
   service_section: ServiceSection;
 
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'assigned_user' })
+  @Field(() => User, { nullable: true })
+  assigned_user: User;
+
   @Column({
     type: 'enum',
     enum: TicketStatus,

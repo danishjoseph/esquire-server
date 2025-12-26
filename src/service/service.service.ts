@@ -34,9 +34,9 @@ import { ServiceSection } from './entities/service-section.entity';
 import { ServiceSectionName } from './enums/service-section-name.enum';
 import { FilterOption } from './dto/ticket-filters';
 import { UpdateServiceChargeInput } from './dto/update-service-charge.input';
+import { UserService } from 'user/user.service';
 
 const validStatusTransitions: { [key in TicketStatus]: TicketStatus[] } = {
-  [TicketStatus.HOLD]: [TicketStatus.IN_PROGRESS],
   [TicketStatus.IN_PROGRESS]: [TicketStatus.IN_PROGRESS, TicketStatus.QC],
   [TicketStatus.QC]: [TicketStatus.DELIVERY_READY],
   [TicketStatus.DELIVERY_READY]: [TicketStatus.DELIVERED],
@@ -54,6 +54,7 @@ export class ServiceService {
     private readonly serviceSectionService: ServiceSectionService,
     private readonly reportingService: ReportingService,
     private readonly serviceLogRepository: ServiceLogRepository,
+    private readonly userService: UserService,
   ) {}
 
   async create(input: CreateServiceInput, user: User) {
@@ -114,6 +115,7 @@ export class ServiceService {
         'accessories',
         'service_section',
         'updated_by',
+        'assigned_user',
       ],
     };
 
@@ -191,6 +193,7 @@ export class ServiceService {
       service_section_name,
       service_logs: serviceLogInputs,
       status,
+      assigned_user,
     } = updateServiceInput;
     const existingService = await this.serviceRepository.findOne({
       where: { id },
@@ -237,6 +240,16 @@ export class ServiceService {
       existingService.service_section = section;
     }
 
+    if (assigned_user) {
+      const assignedUser = await this.userService.findOneBySub(assigned_user);
+      if (!assignedUser) {
+        throw new NotFoundException(
+          `Assigned user with sub ${updateServiceInput.assigned_user} not found.`,
+        );
+      }
+      existingService.assigned_user = assignedUser;
+    }
+
     existingService.updated_by = user;
     return this.serviceRepository.save(existingService);
   }
@@ -267,7 +280,7 @@ export class ServiceService {
   async statistics() {
     const total = await this.serviceRepository.count();
     const pending = await this.serviceRepository.countBy({
-      status: TicketStatus.HOLD,
+      status: TicketStatus.IN_PROGRESS,
     });
     const solved = await this.serviceRepository.countBy({
       status: TicketStatus.CLOSED,

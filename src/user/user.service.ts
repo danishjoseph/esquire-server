@@ -74,4 +74,21 @@ export class UserService {
       return this.update(user.id, input);
     }
   }
+
+  async findOneBySub(sub: string, queryRunner?: QueryRunner) {
+    const userRepo = queryRunner
+      ? queryRunner.manager.getRepository(User)
+      : this.userRepository;
+    try {
+      return userRepo.findOneBy({ sub });
+    } catch (error) {
+      this.logger.error(
+        `Unexpected error when finding user with sub ${sub}: ${error.message}`,
+        error.stack,
+      );
+      throw new Error(
+        `An unexpected error occurred while retrieving the user with sub ${sub}.`,
+      );
+    }
+  }
 }

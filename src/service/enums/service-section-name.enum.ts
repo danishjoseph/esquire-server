@@ -7,4 +7,5 @@ export enum ServiceSectionName {
   VENDOR_ASP = 'VENDOR_ASP',
   OUTSOURCE = 'OUTSOURCE',
   OUTDOOR = 'OUTDOOR',
+  HOLD = 'HOLD',
 }
