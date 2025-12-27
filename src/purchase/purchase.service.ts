@@ -225,6 +225,22 @@ export class PurchaseService {
     }
   }
 
+  async findByProduct(
+    productId: number,
+    queryRunner?: QueryRunner,
+  ): Promise<Purchase | null> {
+    const purchaseRepo = queryRunner
+      ? queryRunner.manager.getRepository(Purchase)
+      : this.purchaseRepository;
+
+    return purchaseRepo.findOne({
+      where: {
+        product: { id: productId },
+      },
+      relations: ['product', 'customer'],
+    });
+  }
+
   async ensurePurchase(
     input: CreatePurchaseInput,
     purchaseId: string,
@@ -248,6 +264,19 @@ export class PurchaseService {
         queryRunner,
         user,
       );
+
+      const existingPurchase = await this.findByProduct(
+        product.id,
+        queryRunner,
+      );
+
+      if (existingPurchase) {
+        this.logger.log(
+          `Purchase already exists for product serial: ${product.serial_number}`,
+        );
+        return existingPurchase;
+      }
+
       const purchaseData = {
         ...input,
         customer,

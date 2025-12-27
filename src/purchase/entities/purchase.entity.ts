@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -69,6 +70,7 @@ export class Purchase implements IPurchase {
   @Field(() => String, { nullable: true })
   asc_expiry_date: Date;
 
+  @Index('IDX_PURCHASE_PRODUCT', ['product'], { unique: true })
   @ManyToOne(() => Product, (product) => product.purchases)
   @JoinColumn({ name: 'product_id' })
   @Field(() => Product)
